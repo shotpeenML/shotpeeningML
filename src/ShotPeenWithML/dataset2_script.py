@@ -1,4 +1,3 @@
-# Import necessary modules
 import os
 import random
 from abaqus import *
@@ -11,24 +10,14 @@ import shutil
 import sys
 
 
-'''
-The modified script is designed to systematically apply each of the four expansion coefficients (0.005, 0.01, 0.015, 0.02) to one square at a time
-in a 5x5 checkerboard grid, resulting in 100 simulations (4 coefficients * 25 squares). Unlike the original script, where coefficients are randomly
-distributed across the grid, this version focuses on isolating the effect of a single coefficient applied to a specific square while all other
-squares have zero expansion. For each simulation, the script initializes the model, assigns the "zero expansion" material to all squares, and
-applies the target coefficient to one square. It generates a checkerboard pattern reflecting this setup, saves the coefficient distribution as
-numerical arrays, and runs the simulation. Results, including displacement and stress data, are saved for each case. The primary goal of this
-script is to build a dataset where the isolated effect of individual expansion coefficients can be analyzed systematically, offering a
-controlled environment for studying localized material behavior under thermal conditions.
-'''
 # Initialize the CAE startup sequence
 executeOnCaeStartup()
 
 # Number of simulations
-num_simulations = 100  # Adjusted as per requirement
+num_simulations = 100  # do not change as 100 covers all the possible combinations
 
 # Directory to save all simulations
-main_directory = r'U:\Shot Peening\Checkerboard\Method2\Dataset1_Single_Square'  # Change this to your desired path
+main_directory = r'U:\Shot Peening\Checkerboard\Method2\Dataset1_Single_Square'  
 
 # Create the main directory if it doesn't exist
 if not os.path.exists(main_directory):
@@ -45,7 +34,7 @@ expansion_data = [
 # Square dimensions
 square_length = 1  # meters
 checker_size = 0.2  # meters
-pattern_number = int(square_length / checker_size)  # Should be 5 for a 5x5 grid
+pattern_number = int(square_length / checker_size)
 
 sample_idx = 0  # Initialize sample index
 
@@ -96,7 +85,9 @@ for coef, name_suffix in expansion_data:
             p_peen = mdb.models['Script'].Part(name='Peen', objectToCopy=mdb.models['Script'].parts['Sheet'])
             
             # Create Materials and Sections
-            # For Peen
+
+                # For Peen
+
             # Create zero expansion material and section
             mdb.models['Script'].Material(name='Aluminum-Zero')
             mdb.models['Script'].materials['Aluminum-Zero'].Elastic(table=((68000000000.0, 0.36), ))
@@ -127,7 +118,8 @@ for coef, name_suffix in expansion_data:
                                                          poissonDefinition=DEFAULT, thicknessModulus=None, temperature=GRADIENT,
                                                          useDensity=OFF, integrationRule=SIMPSON, numIntPts=5)
             
-            # For Sheet
+                # For Sheet
+            
             # Create the material with the given name
             mdb.models['Script'].Material(name='Aluminum-Sheet')
             mdb.models['Script'].materials['Aluminum-Sheet'].Elastic(table=((68000000000.0, 0.36), ))
@@ -370,9 +362,8 @@ for coef, name_suffix in expansion_data:
             # Close the ODB file
             odb.close()
         
-            # (Rest of your script)
         
-            # Optionally, delete the job from the job manager to free up resources
+            # Delete the job from the job manager to free up resources
             del mdb.jobs[job_name]
             
             # Clear the model database for the next simulation

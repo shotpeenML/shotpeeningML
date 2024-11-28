@@ -1,4 +1,3 @@
-# Import necessary modules
 import os
 import random
 from abaqus import *
@@ -11,24 +10,14 @@ import shutil
 import sys
 
 
-'''
-Generates a dataset of random checkerboard patterns with expansion coefficients assigned to alternating squares in a 5x5 checkerboard 
-grid for material simulations. The script iterates through a predefined number of simulations, creating a unique checkerboard pattern for each. 
-Four different expansion coefficients (0.005, 0.01, 0.015, 0.02) are randomly assigned to the squares of the checkerboard grid. The script prepares 
-the geometry, assigns materials with different thermal expansion properties, and saves the resulting patterns as numerical arrays for reference. 
-For each simulation, a new model is initialized, and relevant boundary conditions and temperature fields are applied. The simulation results are 
-saved, including displacement and stress data, as well as the material distribution for later analysis. The primary goal is to generate a 
-comprehensive dataset to study the effects of material expansion on the checkerboard pattern's mechanical response under uniform thermal conditions.
-'''
-
 # Initialize the CAE startup sequence
 executeOnCaeStartup()
 
 # Number of simulations
-num_simulations = 2000  # Adjust as needed
+num_simulations = 2000 
 
 # Directory to save all simulations
-main_directory = r'U:\Shot Peening\Checkerboard\Dataset1_Random_Board'  # Change this to your desired path
+main_directory = r'U:\Shot Peening\Checkerboard\Dataset1_Random_Board'
 
 # Create the main directory if it doesn't exist
 if not os.path.exists(main_directory):
@@ -64,7 +53,7 @@ for sample_idx in range(num_simulations):
     # Unset the sketch as the primary object
     s.unsetPrimaryObject()
     
-    # Delete the sketch as it is no longer needed
+    # Delete the sketch
     del mdb.models['Script'].sketches['__profile__']
     
     # Create a set called 'Sheet-all' including all of the geometry of the part 'Sheet'
@@ -79,7 +68,9 @@ for sample_idx in range(num_simulations):
     p_peen = mdb.models['Script'].Part(name='Peen', objectToCopy=mdb.models['Script'].parts['Sheet'])
     
     # Create Material(s) and Section(s)
-    # For Peen
+
+        # For Peen
+
     # Create a list of tuples of expansion coefficients
     expansion_data = [
         (0.005, '005'),
@@ -109,7 +100,8 @@ for sample_idx in range(num_simulations):
                                                      poissonDefinition=DEFAULT, thicknessModulus=None, temperature=GRADIENT,
                                                      useDensity=OFF, integrationRule=SIMPSON, numIntPts=5)
     
-    # For Sheet
+        # For Sheet
+
     # Create the material with the given name
     mdb.models['Script'].Material(name='Aluminum-Sheet')
     mdb.models['Script'].materials['Aluminum-Sheet'].Elastic(table=((68000000000.0, 0.36), ))
@@ -132,7 +124,7 @@ for sample_idx in range(num_simulations):
     
     # Create checkerboard pattern on the Peen part
     part = mdb.models['Script'].parts['Peen']
-    checker_size = 0.2  # make sure this does not return float pattern_number
+    checker_size = 0.2 
     pattern_number = int(square_length / checker_size)
     
     # Create the checkerboard sketch
@@ -246,7 +238,7 @@ for sample_idx in range(num_simulations):
     p_sheet.seedPart(size=0.02, deviationFactor=0.1, minSizeFactor=0.1)
     p_sheet.generateMesh()
     
-    # Create unique job name
+    # Create job name
     job_name = 'Checkerboard_{}'.format(sample_idx)
     
     # Save the CAE file in the simulation folder
@@ -371,10 +363,8 @@ for sample_idx in range(num_simulations):
     if os.path.exists(odb_path):
         shutil.move(odb_path, odb_destination)
 
-    # (Rest of your script)
-
     
-    # Optionally, delete the job from the job manager to free up resources
+    # Delete the job from the job manager to free up resources
     del mdb.jobs[job_name]
     
     # Clear the model database for the next simulation
