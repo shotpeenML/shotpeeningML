@@ -1,162 +1,198 @@
-#%%
 import numpy as np
 import matplotlib.pyplot as plt
 import os
 from matplotlib.collections import PolyCollection
 import matplotlib.collections as mc
 
-# Path to simulation folder
-simulation_folder = r'\\udrive.uw.edu\onestr\Shot Peening\Checkerboard\TestBatch2_with node info\Simulation_0'  # Change to the desired simulation index
+def load_data(file_path, description=""):
+    try:
+        data = np.load(file_path)
+        return data
+    except Exception as e:
+        print(f"Error loading {description} data from {file_path}: {e}")
+        return None
 
-# Deformation Scale (play around with it)
-scale_factor = 1 
+def visualize_checkerboard(simulation_folder):
+    try:
+        checkerboard_path = os.path.join(simulation_folder, 'checkerboard.npy')
+        checkerboard = load_data(checkerboard_path, "checkerboard")
+        if checkerboard is None:
+            return
 
+        plt.figure(figsize=(6, 6))
+        plt.imshow(checkerboard, cmap='viridis', origin='lower', extent=[0, 1, 0, 1])
+        plt.colorbar(label='Expansion Coefficient')
+        plt.title('Checkerboard Pattern of Expansion Coefficients')
+        plt.xlabel('X Position (m)')
+        plt.ylabel('Y Position (m)')
+        plt.grid(False)
+        plt.show()
+    except Exception as e:
+        print(f"Error visualizing checkerboard: {e}")
 
-### 1. Visualize the Checkerboard Pattern ###
+def compute_deformed_mesh(simulation_folder, scale_factor=1):
+    try:
+        # Load node data
+        node_coords = load_data(os.path.join(simulation_folder, 'node_coords.npy'), "node coordinates")
+        node_labels = load_data(os.path.join(simulation_folder, 'node_labels.npy'), "node labels")
+        displacements = load_data(os.path.join(simulation_folder, 'displacements.npy'), "displacements")
+        disp_node_labels = load_data(os.path.join(simulation_folder, 'disp_node_labels.npy'), "displacement node labels")
 
-# Load checkerboard pattern
-checkerboard = np.load(os.path.join(simulation_folder, 'checkerboard.npy'))
+        # Check for missing data
+        if any(obj is None for obj in [node_coords, node_labels, displacements, disp_node_labels]):
+            print("One or more required files are missing.")
+            return None, None, None
 
-# Plot the checkerboard pattern
-plt.figure(figsize=(6, 6))
-plt.imshow(checkerboard, cmap='viridis', origin='lower', extent=[0, 1, 0, 1])
-plt.colorbar(label='Expansion Coefficient')
-plt.title('Checkerboard Pattern of Expansion Coefficients')
-plt.xlabel('X Position (m)')
-plt.ylabel('Y Position (m)')
-plt.grid(False)
-plt.show()
+        # Map node labels to indices
+        node_label_to_index = {label: idx for idx, label in enumerate(node_labels)}
 
-### 2. Visualize the Undeformed and Deformed Mesh ###
+        # Align displacements with node coordinates
+        aligned_displacements = np.zeros_like(node_coords)
+        for idx, label in enumerate(disp_node_labels):
+            node_idx = node_label_to_index[label]
+            aligned_displacements[node_idx] = displacements[idx]
 
-# Load node coordinates and labels
-node_coords = np.load(os.path.join(simulation_folder, 'node_coords.npy'))
-node_labels = np.load(os.path.join(simulation_folder, 'node_labels.npy'))
+        # Compute deformed coordinates
+        deformed_coords = node_coords + scale_factor * aligned_displacements
 
-# Load displacements and corresponding node labels
-displacements = np.load(os.path.join(simulation_folder, 'displacements.npy'))
-disp_node_labels = np.load(os.path.join(simulation_folder, 'disp_node_labels.npy'))
+        # Load element connectivity
+        element_connectivity = load_data(os.path.join(simulation_folder, 'element_connectivity.npy'), "element connectivity")
+        if element_connectivity is None:
+            print("Element connectivity file is missing.")
+            return None, None, None
 
-# Create a mapping from node label to index in node_coords
-node_label_to_index = {label: idx for idx, label in enumerate(node_labels)}
+        # Map element connectivity to node indices
+        element_nodes = [
+            [node_label_to_index[label] for label in elem]
+            for elem in element_connectivity
+        ]
 
-# Initialize an array to store displacements aligned with node_coords
-aligned_displacements = np.zeros_like(node_coords)
+        return node_coords, deformed_coords, element_nodes
+    except Exception as e:
+        print(f"Error computing deformed mesh: {e}")
+        return None, None, None
 
-for idx, label in enumerate(disp_node_labels):
-    node_idx = node_label_to_index[label]
-    aligned_displacements[node_idx] = displacements[idx]
+def visualize_mesh(node_coords, deformed_coords, element_nodes):
+    try:
+        def create_mesh_lines(coords, elements):
+            lines = []
+            for elem in elements:
+                element_coords = coords[elem]
+                for i in range(len(element_coords)):
+                    start = element_coords[i][:2]
+                    end = element_coords[(i + 1) % len(element_coords)][:2]
+                    lines.append([start, end])
+            return lines
 
-# Compute deformed node positions
-deformed_coords = node_coords + scale_factor * aligned_displacements
+        undeformed_lines = create_mesh_lines(node_coords, element_nodes)
+        deformed_lines = create_mesh_lines(deformed_coords, element_nodes)
 
-# Load element connectivity
-element_connectivity = np.load(os.path.join(simulation_folder, 'element_connectivity.npy'))
+        fig, ax = plt.subplots(figsize=(10, 10))
+        lc_undeformed = mc.LineCollection(undeformed_lines, colors='gray', linewidths=0.5)
+        lc_deformed = mc.LineCollection(deformed_lines, colors='blue', linewidths=0.5)
+        ax.add_collection(lc_undeformed)
+        ax.add_collection(lc_deformed)
+        ax.set_xlim([0, 1])
+        ax.set_ylim([0, 1])
+        ax.set_aspect('equal')
+        ax.set_title('Undeformed (gray) and Deformed (blue) Mesh')
+        ax.set_xlabel('X Position (m)')
+        ax.set_ylabel('Y Position (m)')
+        plt.show()
+    except Exception as e:
+        print(f"Error visualizing mesh: {e}")
 
-# Convert node labels in connectivity to indices
-element_nodes = []
+def visualize_stress_field(simulation_folder, deformed_coords, element_nodes):
+    try:
+        stresses = load_data(os.path.join(simulation_folder, 'stresses.npy'), "stresses")
+        stress_element_labels = load_data(os.path.join(simulation_folder, 'stress_element_labels.npy'), "stress element labels")
+        if stresses is None or stress_element_labels is None:
+            return
 
-for elem in element_connectivity:
-    indices = [node_label_to_index[label] for label in elem]
-    element_nodes.append(indices)
+        S11, S22, S12 = stresses[:, 0], stresses[:, 1], stresses[:, 3]
+        von_mises_stress = np.sqrt(S11**2 - S11*S22 + S22**2 + 3*S12**2)
+        element_label_to_stress = {label: vm for label, vm in zip(stress_element_labels, von_mises_stress)}
 
-# Creating mesh lines
-def create_mesh_lines(node_coords, element_nodes):
-    lines = []
-    for elem in element_nodes:
-        coords = node_coords[elem]
-        for i in range(len(coords)):
-            start = coords[i][:2]
-            end = coords[(i + 1) % len(coords)][:2]
-            lines.append([start, end])
-    return lines
+        element_polygons = []
+        element_stress_values = []
 
-# Create lines for undeformed and deformed mesh
-undeformed_lines = create_mesh_lines(node_coords, element_nodes)
-deformed_lines = create_mesh_lines(deformed_coords, element_nodes)
+        for elem_indices, elem_label in zip(element_nodes, stress_element_labels):
+            coords = deformed_coords[elem_indices][:, :2]
+            element_polygons.append(coords)
+            element_stress_values.append(element_label_to_stress[elem_label])
 
-'''
-# Plot undeformed and deformed mesh
-fig, ax = plt.subplots(figsize=(10, 10))
-lc_undeformed = mc.LineCollection(undeformed_lines, colors='gray', linewidths=0.5)
-ax.add_collection(lc_undeformed)
-lc_deformed = mc.LineCollection(deformed_lines, colors='blue', linewidths=0.5)
-ax.add_collection(lc_deformed)
-ax.set_xlim([0, 1])
-ax.set_ylim([0, 1])
-ax.set_aspect('equal')
-ax.set_title('Undeformed (gray) and Deformed (blue) Mesh')
-ax.set_xlabel('X Position (m)')
-ax.set_ylabel('Y Position (m)')
-plt.show()
-'''
+        collection = PolyCollection(element_polygons, array=element_stress_values, cmap='jet', edgecolors='k', linewidths=0.5)
+        fig, ax = plt.subplots(figsize=(10, 10))
+        ax.add_collection(collection)
+        ax.autoscale_view()
+        ax.set_aspect('equal')
+        plt.colorbar(collection, ax=ax, label='Von Mises Stress (Pa)')
+        ax.set_title('Stress Field on Deformed Mesh')
+        ax.set_xlabel('X Position (m)')
+        ax.set_ylabel('Y Position (m)')
+        plt.show()
+    except Exception as e:
+        print(f"Error visualizing stress field: {e}")
 
-### 3. Visualize the Stress Field on Deformed Mesh ###
+def visualize_deformation(simulation_folder, deformed_coords, element_nodes, aligned_displacements):
+    try:
+        deformation_magnitude = np.linalg.norm(aligned_displacements, axis=1)
 
-# Load stress data and labels
-stresses = np.load(os.path.join(simulation_folder, 'stresses.npy'))
-stress_element_labels = np.load(os.path.join(simulation_folder, 'stress_element_labels.npy'))
+        element_deformation_values = [
+            deformation_magnitude[elem_indices].mean()
+            for elem_indices in element_nodes
+        ]
 
-# Compute von Mises stress
-S11 = stresses[:, 0]
-S22 = stresses[:, 1]
-S12 = stresses[:, 3]
-von_mises_stress = np.sqrt(S11**2 - S11*S22 + S22**2 + 3*S12**2)
+        element_polygons = [
+            deformed_coords[elem_indices][:, :2] for elem_indices in element_nodes
+        ]
 
-# Map stress data to elements
-element_label_to_stress = {label: vm for label, vm in zip(stress_element_labels, von_mises_stress)}
+        collection_def = PolyCollection(element_polygons, array=element_deformation_values, cmap='plasma', edgecolors='k', linewidths=0.5)
 
-# Prepare data for plotting
-element_polygons = []
-element_stress_values = []
+        fig, ax = plt.subplots(figsize=(10, 10))
+        ax.add_collection(collection_def)
+        ax.autoscale_view()
+        ax.set_aspect('equal')
+        plt.colorbar(collection_def, ax=ax, label='Deformation Magnitude (m)')
+        ax.set_title('Deformation Magnitude on Deformed Mesh')
+        ax.set_xlabel('X Position (m)')
+        ax.set_ylabel('Y Position (m)')
+        plt.show()
+    except Exception as e:
+        print(f"Error visualizing deformation: {e}")
 
-for elem_indices, elem_label in zip(element_nodes, stress_element_labels):
-    coords = deformed_coords[elem_indices][:, :2]
-    element_polygons.append(coords)
-    stress_value = element_label_to_stress[elem_label]
-    element_stress_values.append(stress_value)
+def main():
+    # Path to the simulation folder
+    simulation_folder = r'\\udrive.uw.edu\onestr\Shot Peening\Checkerboard\Method1\TestBatch\Simulation_0'
 
-# Create PolyCollection
-collection = PolyCollection(element_polygons, array=element_stress_values, cmap='jet', edgecolors='k', linewidths=0.5)
+    # Deformation Scale (play around with it)
+    scale_factor = 1 
 
-# Plot stress field on deformed mesh
-fig, ax = plt.subplots(figsize=(10, 10))
-ax.add_collection(collection)
-ax.autoscale_view()
-ax.set_aspect('equal')
-plt.colorbar(collection, ax=ax, label='Von Mises Stress (Pa)')
-ax.set_title('Stress Field on Deformed Mesh')
-ax.set_xlabel('X Position (m)')
-ax.set_ylabel('Y Position (m)')
-plt.show()
+    # Step 1: Visualize the Checkerboard Pattern
+    print("Visualizing Checkerboard Pattern...")
+    visualize_checkerboard(simulation_folder)
 
-### 4. Visualize the Deformation Magnitude on Deformed Mesh ###
+    # Step 2: Compute Deformed Mesh
+    print("Computing Deformed Mesh...")
+    node_coords, deformed_coords, element_nodes = compute_deformed_mesh(simulation_folder, scale_factor)
 
-# Compute deformation magnitude at each node
-deformation_magnitude = np.linalg.norm(aligned_displacements, axis=1)
+    # Check if any of the outputs are None
+    if any(obj is None for obj in [node_coords, deformed_coords, element_nodes]):
+        print("Error in computing deformed mesh. Exiting.")
+        return
 
-# Normalize deformation magnitude for color mapping (optional)
-# deformation_magnitude_normalized = (deformation_magnitude - deformation_magnitude.min()) / (deformation_magnitude.max() - deformation_magnitude.min())
+    # Step 3: Visualize the Undeformed and Deformed Mesh
+    print("Visualizing Mesh (Undeformed and Deformed)...")
+    visualize_mesh(node_coords, deformed_coords, element_nodes)
 
-# Prepare data for plotting
-# Since deformation is a nodal value, we need to map it to elements for plotting
-element_deformation_values = []
+    # Step 4: Visualize the Stress Field on the Deformed Mesh
+    print("Visualizing Stress Field on Deformed Mesh...")
+    visualize_stress_field(simulation_folder, deformed_coords, element_nodes)
 
-for elem_indices in element_nodes:
-    # Average deformation magnitude of the nodes in the element
-    avg_deformation = deformation_magnitude[elem_indices].mean()
-    element_deformation_values.append(avg_deformation)
+    # Step 5: Visualize the Deformation Magnitude on Deformed Mesh
+    print("Visualizing Deformation Magnitude on Deformed Mesh...")
+    aligned_displacements = deformed_coords - node_coords
+    visualize_deformation(simulation_folder, deformed_coords, element_nodes, aligned_displacements)
 
-# Create PolyCollection for deformation
-collection_def = PolyCollection(element_polygons, array=element_deformation_values, cmap='plasma', edgecolors='k', linewidths=0.5)
-
-# Plot deformation magnitude on deformed mesh
-fig, ax = plt.subplots(figsize=(10, 10))
-ax.add_collection(collection_def)
-ax.autoscale_view()
-ax.set_aspect('equal')
-plt.colorbar(collection_def, ax=ax, label='Deformation Magnitude (m)')
-ax.set_title('Deformation Magnitude on Deformed Mesh')
-ax.set_xlabel('X Position (m)')
-ax.set_ylabel('Y Position (m)')
-plt.show()
+if __name__ == "__main__":
+    main()
