@@ -292,10 +292,20 @@ def train_model(model, train_loader, val_loader, criterion, optimizer, scheduler
     return train_losses, val_losses
 
 # 8. Evaluation Function
+def smape(y_true, y_pred):
+    """Calculate sMAPE for two tensors."""
+    numerator = torch.abs(y_true - y_pred)
+    denominator = (torch.abs(y_true) + torch.abs(y_pred)) / 2
+    smape_value = torch.mean(numerator / denominator) 
+    return smape_value
+    
 def evaluate_model(model, test_loader, criterion):
     model.eval()
     total_mse = 0.0  # Initialize total MSE for all batches
+    total_smape = 0.0  # Initialize total sMAPE for all batches
+
     batch_count = 0
+
 
     with torch.no_grad():
         for checkerboard, displacement in test_loader:
@@ -305,6 +315,11 @@ def evaluate_model(model, test_loader, criterion):
             # Calculate batch MSE
             batch_mse = criterion(predicted_displacements, displacement).item()  # Compute MSE loss for the batch
             total_mse += batch_mse
+            
+            # Calculate batch sMAPE
+            batch_smape = smape(displacement, predicted_displacements).item() # sMAPE
+            total_smape += batch_smape
+
             batch_count += 1
 
             # Display results for the first batch
@@ -318,14 +333,17 @@ def evaluate_model(model, test_loader, criterion):
 
     # Calculate and print overall MSE
     overall_mse = total_mse / batch_count
-    print(f"\nOverall Mean Squared Error (MSE) on Test Set: {overall_mse:.10f}")
+    overall_smape = total_smape / batch_count
+
+    print(f"Overall Mean Squared Error (MSE) on Test Set: {overall_mse:.10f}")
+    print(f"Overall Symmetric Mean Absolute Percentage Error (sMAPE) on Test Set: {overall_smape * 100:.10f}%")
     return overall_mse
 
 # 9. Main Function
 def main():
-    # Base folder and number of simulations
+    ### Change the path to your local data directory 
     data_path1 = r"C:\Users\Lenovo\Desktop\CSE 583 Software Development for Data Scientists\Project\Dataset1_Random_Board\Dataset1_Random_Board"
-    num_simulations1 = 1531  # Adjust based on your dataset
+    num_simulations1 = 1531  # change the number of simulatiions to your actual data size 
 
     # Create DataLoaders
     print("Loading data...")
