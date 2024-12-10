@@ -2,6 +2,13 @@ import tkinter as tk
 from tkinter import filedialog, ttk, messagebox
 
 
+def check_install(package_id: str):
+    try:
+        __import__(package_id)
+    except ModuleNotFoundError:
+        print(f"{package_id} not installed")
+        subprocess.check_call([sys.executable, "-m", "pip", "install", package_id])
+
 class App:
     def __init__(self, root):
         self.root = root
@@ -119,6 +126,19 @@ class App:
         log_widget.see(tk.END)
         log_widget.config(state='disabled')
 
+
+# Check for missing modules
+dependencies = [
+    "requests>=2.25.1",
+    "numpy>=1.20.0",
+    "matplotlib>=3.4.0",
+    "pandas>=1.3.0",
+    "torch>=1.9.0",
+    "tkinter"
+]
+
+for library in dependencies:
+    check_install(library)
 
 # Run the Application
 if __name__ == "__main__":
