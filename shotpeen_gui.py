@@ -18,7 +18,7 @@ Dependencies:
 - numpy>=1.20.0
 - matplotlib>=3.4.0
 - pandas>=1.3.0
-- pytorch==2.5.0
+- pytorch>=1.9.0
 - tkinter (for GUI functionality)
 
 Function Definitions:
@@ -61,21 +61,19 @@ import shutil
 import os
 from PIL import Image, ImageTk
 
-sys.path.append(os.path.join(os.path.dirname(__file__), 'src\\peen-ml'))
-
-import data_viz as viz
-import model as md
-
 def check_install(package_id: str):
     """
-    Installs Required Packages automatically
+    Checks if a package is installed and installs it if missing.
+
+    Args:
+        package_id (str): The name of the package to check/install.
     """
     try:
         # Try importing the package to check if it's installed
         __import__(package_id)
         print(f"{package_id} is already installed.")
     except ModuleNotFoundError:
-        print(f"{package_id} not installed.")
+        print(f"{package_id} is not installed.")
         try:
             # Try installing using pip
             print(f"Trying to install {package_id} using pip...")
@@ -93,6 +91,10 @@ def check_install(package_id: str):
                 print(f"Conda installation failed: {conda_error}")
                 print(f"Unable to install {package_id} with pip or conda.")
 
+#Append src folder to path such that the called python files can be called.
+sys.path.append(os.path.join(os.path.dirname(__file__), 'src\\peen-ml'))
+# import data_viz as viz
+# import model as md
 
 class App:
     """
@@ -131,16 +133,18 @@ class App:
         try:
             bullet_bill_path = self.get_file_path(r'src\\peen-ml\\bullet_bill.png')
             image = Image.open(bullet_bill_path)
-            image = image.resize((800, 500), Image.Resampling.LANCZOS)
+            image = image.resize((400, 250), Image.Resampling.LANCZOS)
             self.splash_image = ImageTk.PhotoImage(image)
-            label = ttk.Label(self, image=self.splash_image)
-            label.pack()
+            ttk.Label(main_frame, image=self.splash_image).grid(row=0,
+                                              column=0,
+                                                columnspan=2,
+                                                  pady=20)
         except FileNotFoundError as e:
             raise f"Could not locate Bullet bill logo {e}"
 
         tk.Label(main_frame,
                   text="Main Menu",
-                    font=("Arial", 24)).grid(row=0,
+                    font=("Arial", 24)).grid(row=1,
                                               column=0,
                                                 columnspan=2,
                                                   pady=20)
@@ -149,7 +153,7 @@ class App:
                    text="Train Model",
                      command=self.train_model_dialog,
                        width=20,
-                         height=2).grid(row=1,
+                         height=2).grid(row=2,
                                          column=0,
                                            padx=20,
                                              pady=20)
@@ -157,22 +161,23 @@ class App:
                    text="Load Model",
                      command=self.load_model_dialog,
                        width=20,
-                         height=2).grid(row=1,
+                         height=2).grid(row=2,
                                          column=1,
                                            padx=20,
                                              pady=20)
 
-    def get_file_path(self,relative_path):
+    def get_file_path(self, relative_path):
         """
         Gets the file path of the requested file, works in development or .exe mode
+        Args:
+            relative_path (str): The relative path to the desired file.
+        
+        Returns:
+            str: The absolute path to the file.
         """
-        try:
-            base_path = sys._MEIPASS
-        except AttributeError:
-            base_path = os.path.abspath(".")
-
+        # Use the _MEIPASS attribute or abs path
+        base_path = getattr(sys, '_MEIPASS', os.path.abspath("."))
         return os.path.join(base_path, relative_path)
-    
     def train_model_dialog(self):
         """
         Opens a dialog window for training a model.
@@ -390,11 +395,12 @@ dependencies = [
     "matplotlib",
     "pandas",
     "pytorch",
-    "tkinter"
+    "tkinter",
+    "pillow"
 ]
 
-for library in dependencies:
-    check_install(library)
+# for library in dependencies:
+#     check_install(library)
 
 # Run the Application
 if __name__ == "__main__":
