@@ -1,10 +1,28 @@
+"""
+Module: Displacement Prediction using CNN with Attention Mechanisms
+
+This module contains classes and functions for loading and processing simulation data,
+defining neural network models with attention mechanisms, and training and evaluating the models
+for displacement prediction.
+
+Features:
+1. Loading .npy files from simulation datasets.
+2. Custom PyTorch Dataset classes for checkerboard and displacement data.
+3. Channel and spatial attention modules for feature enhancement.
+4. A CNN model for displacement prediction.
+5. Data loader creation, training, and evaluation utilities.
+
+Author:
+    Jiachen Zhong
+Date:
+    Dec 10, 2024
+"""
+
 import os
-import pandas as pd
 import numpy as np
 
 import torch
-import torch.nn as nn
-import torch.optim as optim
+from torch import nn, optim
 import matplotlib.pyplot as plt
 from torch.utils.data import Dataset, DataLoader, random_split
 
@@ -57,6 +75,13 @@ def load_all_npy_files(base_folder, num_simulations, load_files=("checkerboard",
 
 # 2. Dataset Classes
 class CheckerboardDataset(Dataset):
+    """
+    A PyTorch Dataset class for checkerboard patterns and displacement data.
+
+    Args:
+        checkerboards (numpy array): Array of checkerboard patterns (batch_size, height, width).
+        displacements (numpy array): Array of displacements (batch_size, num_nodes, 3).
+    """
     def __init__(self, checkerboards, displacements):
         """
         Args:
@@ -67,9 +92,19 @@ class CheckerboardDataset(Dataset):
         self.displacements = displacements
 
     def __len__(self):
+        """Returns the total number of samples in the dataset."""
         return len(self.checkerboards)
 
     def __getitem__(self, idx):
+        """
+        Retrieves a sample by index.
+
+        Args:
+            idx (int): Index of the sample.
+
+        Returns:
+            tuple: A tuple containing the checkerboard tensor and the displacement tensor.
+        """
         checkerboard = self.checkerboards[idx]
         displacement = self.displacements[idx]
 
@@ -82,6 +117,9 @@ class CheckerboardDataset(Dataset):
 class NormalizedDataset(Dataset):
     """
     A wrapper for normalizing datasets. Takes a base dataset and applies normalization to its features.
+
+    Args:
+        base_dataset (Dataset): The original dataset to normalize.
     """
     def __init__(self, base_dataset):
         self.base_dataset = base_dataset
@@ -90,15 +128,32 @@ class NormalizedDataset(Dataset):
         self.max_val = self.checkerboards.max()
 
     def __len__(self):
+        """Returns the total number of samples in the dataset."""
         return len(self.base_dataset)
 
     def __getitem__(self, idx):
+        """
+        Retrieves a sample by index and normalizes the checkerboard.
+
+        Args:
+            idx (int): Index of the sample.
+
+        Returns:
+            tuple: A tuple containing the normalized checkerboard tensor and the displacement tensor.
+        """
         checkerboard, displacement = self.base_dataset[idx]
         normalized_checkerboard = (checkerboard - self.min_val) / (self.max_val - self.min_val)
         return normalized_checkerboard, displacement
 
 # 3. Attention Modules
 class ChannelAttention(nn.Module):
+    """
+    Channel Attention module for emphasizing relevant feature channels.
+
+    Args:
+        channels (int): Number of input channels.
+        reduction (int): Reduction ratio for channel compression (default: 16).
+    """
     def __init__(self, channels, reduction=16):
         super(ChannelAttention, self).__init__()
         self.fc1 = nn.Conv2d(channels, channels // reduction, kernel_size=1)
@@ -106,6 +161,15 @@ class ChannelAttention(nn.Module):
         self.sigmoid = nn.Sigmoid()
 
     def forward(self, x):
+        """
+        Forward pass of the Channel Attention module.
+
+        Args:
+            x (Tensor): Input feature map.
+
+        Returns:
+            Tensor: Feature map after channel attention.
+        """
         avg_pool = torch.mean(x, dim=(2, 3), keepdim=True)  # Global average pooling
         max_pool = torch.max(torch.max(x, dim=2, keepdim=True).values, dim=3, keepdim=True).values  # Global max pooling
         scale = self.fc1(avg_pool) + self.fc1(max_pool)
@@ -113,12 +177,24 @@ class ChannelAttention(nn.Module):
         return self.sigmoid(scale) * x
 
 class SpatialAttention(nn.Module):
+    """
+    Spatial Attention module for emphasizing relevant spatial regions.
+    """
     def __init__(self):
         super(SpatialAttention, self).__init__()
         self.conv1 = nn.Conv2d(2, 1, kernel_size=7, padding=3)
         self.sigmoid = nn.Sigmoid()
 
     def forward(self, x):
+        """
+        Forward pass of the Spatial Attention module.
+
+        Args:
+            x (Tensor): Input feature map.
+
+        Returns:
+            Tensor: Feature map after spatial attention.
+        """
         avg_pool = torch.mean(x, dim=1, keepdim=True)  # Channel-wise average
         max_pool = torch.max(x, dim=1, keepdim=True).values  # Channel-wise max
         scale = torch.cat([avg_pool, max_pool], dim=1)
@@ -126,6 +202,13 @@ class SpatialAttention(nn.Module):
 
 # 4. CNN Model with Attention
 class DisplacementPredictor(nn.Module):
+    """
+    A CNN model with channel and spatial attention for displacement prediction.
+
+    Args:
+        input_channels (int): Number of input channels.
+        num_nodes (int): Number of nodes in the displacement data.
+    """
     def __init__(self, input_channels, num_nodes):
         super(DisplacementPredictor, self).__init__()
 
@@ -162,6 +245,15 @@ class DisplacementPredictor(nn.Module):
         )
 
     def forward(self, x):
+        """
+        Forward pass of the displacement predictor model.
+
+        Args:
+            x (Tensor): Input tensor of shape (batch_size, input_channels, height, width).
+
+        Returns:
+            Tensor: Predicted displacement tensor of shape (batch_size, num_nodes, 3).
+        """
         x = self.conv1(x)
         x = self.ca1(x)
         x = self.sa1(x)
@@ -183,6 +275,19 @@ class DisplacementPredictor(nn.Module):
 
 # 5. Data Loader Creation Function
 def create_data_loaders(base_folder, num_simulations, load_files=("checkerboard", "displacements"), skip_missing=True, batch_size=15):
+    """
+    Create PyTorch DataLoaders for training, validation, and testing.
+
+    Args:
+        base_folder (str): Path to the folder containing simulation data.
+        num_simulations (int): Number of simulation subfolders to process.
+        load_files (tuple): Names of the files to load (default: ("checkerboard", "displacements")).
+        skip_missing (bool): Whether to skip missing files or raise an error.
+        batch_size (int): Batch size for DataLoaders.
+
+    Returns:
+        tuple: DataLoaders for training, validation, and testing, and the loaded data dictionary.
+    """
     loaded_data = load_all_npy_files(base_folder, num_simulations, load_files, skip_missing)
     checkerboard = loaded_data["checkerboard"]
     displacements = loaded_data["displacements"]
@@ -214,11 +319,37 @@ def create_data_loaders(base_folder, num_simulations, load_files=("checkerboard"
 
 # 6. Model Creation Function
 def create_model(input_channels, num_nodes):
+    """
+    Create a DisplacementPredictor model.
+
+    Args:
+        input_channels (int): Number of input channels.
+        num_nodes (int): Number of nodes in the displacement data.
+
+    Returns:
+        DisplacementPredictor: The instantiated model.
+    """
     model = DisplacementPredictor(input_channels, num_nodes)
     return model
 
 # 7. Training Function
 def train_model(model, train_loader, val_loader, criterion, optimizer, scheduler, epochs=10, patience=5):
+    """
+    Train the model with early stopping.
+
+    Args:
+        model (nn.Module): The PyTorch model to train.
+        train_loader (DataLoader): DataLoader for training data.
+        val_loader (DataLoader): DataLoader for validation data.
+        criterion (nn.Module): Loss function.
+        optimizer (torch.optim.Optimizer): Optimizer for training.
+        scheduler (torch.optim.lr_scheduler._LRScheduler): Learning rate scheduler.
+        epochs (int): Maximum number of training epochs.
+        patience (int): Number of epochs to wait for improvement before stopping early.
+
+    Returns:
+        tuple: Lists of training and validation losses per epoch.
+    """
     best_val_loss = float('inf')
     early_stop_counter = 0
 
@@ -293,13 +424,33 @@ def train_model(model, train_loader, val_loader, criterion, optimizer, scheduler
 
 # 8. Evaluation Function
 def smape(y_true, y_pred):
-    """Calculate sMAPE for two tensors."""
+    """
+    Calculate Symmetric Mean Absolute Percentage Error (sMAPE).
+
+    Args:
+        y_true (Tensor): Ground truth tensor.
+        y_pred (Tensor): Predicted tensor.
+
+    Returns:
+        float: sMAPE value.
+    """
     numerator = torch.abs(y_true - y_pred)
     denominator = (torch.abs(y_true) + torch.abs(y_pred)) / 2
-    smape_value = torch.mean(numerator / denominator) 
+    smape_value = torch.mean(numerator / denominator)
     return smape_value
-    
+
 def evaluate_model(model, test_loader, criterion):
+    """
+    Evaluate the model on the test set.
+
+    Args:
+        model (nn.Module): The trained model.
+        test_loader (DataLoader): DataLoader for test data.
+        criterion (nn.Module): Loss function.
+
+    Returns:
+        float: Overall Mean Squared Error (MSE) on the test set.
+    """
     model.eval()
     total_mse = 0.0  # Initialize total MSE for all batches
     total_smape = 0.0  # Initialize total sMAPE for all batches
@@ -315,7 +466,7 @@ def evaluate_model(model, test_loader, criterion):
             # Calculate batch MSE
             batch_mse = criterion(predicted_displacements, displacement).item()  # Compute MSE loss for the batch
             total_mse += batch_mse
-            
+
             # Calculate batch sMAPE
             batch_smape = smape(displacement, predicted_displacements).item() # sMAPE
             total_smape += batch_smape
@@ -341,9 +492,18 @@ def evaluate_model(model, test_loader, criterion):
 
 # 9. Main Function
 def main():
-    ### Change the path to your local data directory 
+    """
+    Main function to load data, train the model, and evaluate it.
+
+    Steps:
+    1. Load data from the specified folder.
+    2. Create the model and initialize training components.
+    3. Train the model with early stopping.
+    4. Evaluate the model on the test set.
+    """
+    ### Change the path to your local data directory
     data_path1 = r"C:\Users\Lenovo\Desktop\CSE 583 Software Development for Data Scientists\Project\Dataset1_Random_Board\Dataset1_Random_Board"
-    num_simulations1 = 1531  # change the number of simulatiions to your actual data size 
+    num_simulations1 = 1531  # change the number of simulatiions to your actual data size
 
     # Create DataLoaders
     print("Loading data...")
@@ -354,8 +514,8 @@ def main():
     )
 
     # Access the returned data
-    checkerboard1 = loaded_data1["checkerboard"]
-    displacements1 = loaded_data1["displacements"]
+    # checkerboard1 = loaded_data1["checkerboard"]
+    # displacements1 = loaded_data1["displacements"]
 
     # Model, Loss, and Optimizer
     input_channels = 1  # Checkerboard has 1 channel
@@ -381,8 +541,10 @@ def main():
         epochs=epochs,
         patience=patience
     )
-    print("Training completed.")
-
+    print(
+        f"Training completed. The last training loss is: {train_losses[-1]:.10f}, "
+        f"and the last validation loss is: {val_losses[-1]:.10f}."
+    )
     # Testing and Evaluation
     print("Evaluating model on test set...")
     evaluate_model(
