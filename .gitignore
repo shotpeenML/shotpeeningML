@@ -1,0 +1,83 @@
+# General
+.DS_Store
+Thumbs.db
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Node.js
+node_modules/
+dist/
+build/
+.env
+.env.local
+.env.*.local
+
+# Python
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+*.env
+*.venv
+.env/
+.venv/
+instance/
+.pytest_cache/
+.coverage
+*.cover
+htmlcov/
+.tox/
+nosetests.xml
+coverage.xml
+*.egg
+*.egg-info/
+.eggs/
+.Python
+
+# Java
+*.class
+*.jar
+*.war
+*.ear
+target/
+*.iml
+*.idea/
+
+# macOS
+*.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Editor files
+*.swp
+*~ 
+.idea/
+.vscode/
+*.sublime-workspace
+
+# Compiled source
+*.com
+*.class
+*.dll
+*.exe
+*.o
+*.so
+
+# Others
+*.out
+*.log
+*.sql
+*.sqlite
+*.sqlite3
+*.bak
