@@ -1,14 +1,14 @@
 """
 This module provides a suite of functions for visualizing and analyzing the results
-of a shot peening simulation or ML prediction. The tools include loading simulation data, visualizing
-checkerboard patterns, computing deformed meshes, and visualizing deformation and stress
+of a shot peening simulation or ML prediction. The tools include loading simulation data, 
+visualizing checkerboard patterns, computing deformed meshes, and visualizing deformation and stress
 fields.
 
 The primary workflow for a given simulation folder involves:
 1. Loading simulation data from specified files.
 2. Computing deformations based on nodal coordinates and displacements.
-3. Visualizing checkerboard patterns, undeformed and deformed meshes, stress fields, 
-   and deformation magnitudes.
+3. Visualizing checkerboard patterns, undeformed and deformed meshes, stress fields,
+ and deformation magnitudes.
 
 Functions:
 ---------
