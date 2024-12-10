@@ -1,14 +1,70 @@
 """
-This is the main calling and GUI script for the shotpeening backend.
+This is the main calling and GUI script for the shot peening backend.
 This script allows lay users to train and test shot peening models,
-it also serves as a usage example of calling the trained models
+and it serves as a usage example of calling the trained models.
+
+Workflow:
+- The application presents a graphical user interface (GUI) where the user can choose
+     to train a new model or load an existing model.
+- If the user selects "Train Model," the application opens a dialog to configure the training,
+     including selecting input files (training and testing data) and tracking the 
+     training progress via a log and progress bar.
+- If the user selects "Load Model," the application allows them to load an existing model and 
+     related files (STEP file, model file), with an option to preview the STEP file.
+- The script also checks and installs any required dependencies that are missing.
+
+Dependencies:
+- requests>=2.25.1
+- numpy>=1.20.0
+- matplotlib>=3.4.0
+- pandas>=1.3.0
+- pytorch==2.5.0
+- tkinter (for GUI functionality)
+
+Function Definitions:
+1. `check_install(package_id: str)`: Checks if a required package is installed, and
+     installs it using either `pip` or `conda` if it's missing.
+2. `__init__(self, root_tk)`: Initializes the main application window and
+     calls the `main_menu` function to display the initial GUI.
+3. `main_menu(self)`: Displays the main menu of the application with options to train or
+     load a model.
+4. `train_model_dialog(self)`: Opens a dialog window for training a model,
+     allowing the user to select training data and showing a log and progress bar.
+5. `load_model_dialog(self)`: Opens a dialog window for loading an existing model,
+     including options to select model files, STEP files, and output paths.
+6. `browse_file(self, variable)`: Opens a file dialog to allow the user to select a file and
+     stores the file path in the provided variable.
+7. `browse_directory(self, variable)`: Opens a directory dialog to allow the user to select a
+    directory and stores the directory path in the provided variable.
+8. `preview_file(self, file_path)`: Previews the selected STEP file by displaying its path in
+     a message box.
+9. `start_training(self, log_widget, progress_bar)`: Simulates the model training process,
+     updating the log and progress bar.
+10. `finish_training(self, log_widget, progress_bar)`: Completes the training process,
+     stops the progress bar, and updates the training log.
+
+Usage:
+- Upon running the script, a GUI window opens with the option to train a model or
+     load an existing one.
+- Selecting "Train Model" opens a dialog to input training data, with a training log and
+     progress bar to track progress.
+- Selecting "Load Model" opens a dialog to load an existing model and
+     related files (STEP and output paths).
+Author:
+- Harshavardhan Raje
 """
 import tkinter as tk
 from tkinter import filedialog, ttk, messagebox
 import sys
 import subprocess
 import shutil
+import os
+from PIL import Image, ImageTk
 
+sys.path.append(os.path.join(os.path.dirname(__file__), 'src\\peen-ml'))
+
+import data_viz as viz
+import model as md
 
 def check_install(package_id: str):
     """
@@ -72,6 +128,15 @@ class App:
         # Main Menu Layout
         main_frame = tk.Frame(self.root, padx=20, pady=20)
         main_frame.pack(expand=True)
+        try:
+            bullet_bill_path = self.get_file_path(r'src\\peen-ml\\bullet_bill.png')
+            image = Image.open(bullet_bill_path)
+            image = image.resize((800, 500), Image.Resampling.LANCZOS)
+            self.splash_image = ImageTk.PhotoImage(image)
+            label = ttk.Label(self, image=self.splash_image)
+            label.pack()
+        except FileNotFoundError as e:
+            raise f"Could not locate Bullet bill logo {e}"
 
         tk.Label(main_frame,
                   text="Main Menu",
@@ -97,6 +162,17 @@ class App:
                                            padx=20,
                                              pady=20)
 
+    def get_file_path(self,relative_path):
+        """
+        Gets the file path of the requested file, works in development or .exe mode
+        """
+        try:
+            base_path = sys._MEIPASS
+        except AttributeError:
+            base_path = os.path.abspath(".")
+
+        return os.path.join(base_path, relative_path)
+    
     def train_model_dialog(self):
         """
         Opens a dialog window for training a model.
@@ -309,11 +385,11 @@ class App:
 
 # Check for missing modules
 dependencies = [
-    "requests>=2.25.1",
-    "numpy>=1.20.0",
-    "matplotlib>=3.4.0",
-    "pandas>=1.3.0",
-    "pytorch==2.5.0",
+    "requests",
+    "numpy",
+    "matplotlib",
+    "pandas",
+    "pytorch",
     "tkinter"
 ]
 
