@@ -200,7 +200,7 @@ class App:
         """
         dialog = tk.Toplevel(self.root)
         dialog.title("Train Model")
-        dialog.geometry("700x500")
+        dialog.geometry("1000x700")
 
         # Training Layout
         frame = tk.Frame(dialog, padx=20, pady=20)
@@ -264,7 +264,7 @@ class App:
         """
         dialog = tk.Toplevel(self.root)
         dialog.title("Load Model")
-        dialog.geometry("700x500")
+        dialog.geometry("900x500")
 
         # Load Model Layout
         frame = tk.Frame(dialog, padx=20, pady=20)
@@ -293,8 +293,9 @@ class App:
 
         # STEP File Selection
         tk.Label(frame,
-                  text="Input Peen Intensity Folder",
-                    font=("Arial", 12)).grid(row=1, column=0, sticky="e", pady=10)
+                  text="Peen Intensity Folder",
+                    font=("Arial", 12)).grid(row=1, column=0, sticky="e",
+                                              pady=10, padx=10)
         checkerboard_file_var = tk.StringVar()
         tk.Entry(frame,
                   textvariable=checkerboard_file_var,
@@ -429,8 +430,8 @@ class App:
         if not os.path.exists(data_folder):
             messagebox.showerror("Error", f"The folder path does not exist: {data_folder}")
             return
-
-        train_loader, val_loader, test_loader, _ = create_data_loaders(data_folder, num_simulations=100)
+        num_simulations = self.num_of_simulations(data_folder)
+        train_loader, val_loader, test_loader, _ = create_data_loaders(data_folder)
         model = create_model(input_channels=1, num_nodes=5202)
         criterion = torch.nn.MSELoss()
         optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
@@ -468,6 +469,14 @@ class App:
         log_widget.insert(tk.END, "Training completed!\n")
         log_widget.see(tk.END)
         log_widget.config(state='disabled')
+    def num_of_simulations(self, folder_path):
+        simulation_folders = [
+              os.path.join(folder_path, folder)
+              for folder in os.listdir(folder_path)
+              if folder.startswith("Simulation_") and folder[len("Simulation_"):].isdigit()
+          ]
+        print(f"# Simulation folders: {len(simulation_folders)}")
+        return len(simulation_folders)
 
 
 # Check for missing modules
