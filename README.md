@@ -23,6 +23,8 @@ Shot peening is a manufacturing process used to improve material properties by b
 - Compare multiple recipes without running time-consuming simulations.
 - Visualize predicted outcomes and analyze their effects on component geometry.
 
+![Shotpeening_brief](https://raw.githubusercontent.com/onestr1/peen-ml/refs/heads/main/images/what_is_shotpeen.png)
+
 
 This project was developed as part of the CSE 583 Software Development for Data Scientists course at the University of Washington, aiming to demonstrate best practices in code organization, testing, documentation, and continuous integration.
 
@@ -185,8 +187,10 @@ The ML workflow is defined in `src/peen-ml/model.py`:
    ```
    ![Train_model](https://raw.githubusercontent.com/onestr1/peen-ml/refs/heads/main/images/train_model_page.png)
    ![Load model](https://raw.githubusercontent.com/onestr1/peen-ml/refs/heads/main/images/load_model_page.png)
-   This will:
-   - do this
+   Starting from the Main menu you can either train a new model or load a pre-existing model:
+   - To train a model: 
+      - Click on Train model. This will open a new window.
+      - In the new window click on  the 
    - do that
    - do the other thing
 
