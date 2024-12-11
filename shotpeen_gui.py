@@ -64,7 +64,7 @@ import threading
 import torch
 import psutil
 #Append src folder to path such that the called python files can be called.
-sys.path.append(os.path.join(os.path.dirname(__file__), 'src\\peen-ml'))
+sys.path.append(os.path.join(os.path.dirname(__file__), 'src', 'peen-ml'))
 # import data_viz as viz
 # import model as md
 from model import train_model, create_data_loaders, create_model, evaluate_model
@@ -141,7 +141,7 @@ class App:
         main_frame = tk.Frame(self.root, padx=20, pady=20)
         main_frame.pack(expand=True)
         try:
-            bullet_bill_path = self.get_file_path(r'src\\peen-ml\\bullet_bill.png')
+            bullet_bill_path = os.path.join(os.path.dirname(__file__), 'src', 'peen-ml', 'bullet_bill.png')
             image = Image.open(bullet_bill_path)
             image = image.resize((400, 250), Image.Resampling.LANCZOS)
             self.splash_image = ImageTk.PhotoImage(image)
