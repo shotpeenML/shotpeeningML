@@ -20,19 +20,19 @@ Date:
 
 import os
 import numpy as np
+
 import torch
 from torch import nn, optim
 import matplotlib.pyplot as plt
 from torch.utils.data import Dataset, DataLoader, random_split
 
 # 1. Load All Numpy Files Function
-def load_all_npy_files(base_folder, num_simulations, load_files=("checkerboard", "displacements"), skip_missing=True):
+def load_all_npy_files(base_folder, load_files=("checkerboard", "displacements"), skip_missing=True):
     """
     Load specified .npy files from multiple simulation folders.
 
     Args:
         base_folder (str): The base folder containing simulation subfolders.
-        num_simulations (int): The number of simulations (Simulation_0 to Simulation_(num_simulations-1)).
         load_files (tuple): Names of the files to load (default: ("checkerboard", "displacements")).
         skip_missing (bool): If True, skip missing files; otherwise, raise an error.
 
@@ -40,11 +40,19 @@ def load_all_npy_files(base_folder, num_simulations, load_files=("checkerboard",
         dict: A dictionary containing loaded data arrays for the specified files.
               Keys are file names, and values are stacked arrays.
     """
+    # Find all folders matching the pattern "Simulation_\d+"
+    simulation_folders = [
+        folder for folder in os.listdir(base_folder)
+        if os.path.isdir(os.path.join(base_folder, folder)) and folder.startswith("Simulation_")
+    ]
+
+    # Sort folders numerically by the index after "Simulation_"
+    simulation_folders.sort(key=lambda x: int(x.split("_")[1]))
+
     # Initialize dictionaries to store data
     data_dict = {key: [] for key in load_files}
 
-    for i in range(num_simulations):
-        simulation_folder = f"Simulation_{i}"  # Dynamically construct folder name
+    for simulation_folder in simulation_folders:
         simulation_path = os.path.join(base_folder, simulation_folder)
 
         for file_name in load_files:
@@ -273,7 +281,7 @@ class DisplacementPredictor(nn.Module):
         return x.view(x.size(0), -1, 3)
 
 # 5. Data Loader Creation Function
-def create_data_loaders(base_folder, num_simulations, load_files=("checkerboard", "displacements"), skip_missing=True, batch_size=15):
+def create_data_loaders(base_folder, load_files=("checkerboard", "displacements"), skip_missing=True, batch_size=15):
     """
     Create PyTorch DataLoaders for training, validation, and testing.
 
@@ -287,7 +295,7 @@ def create_data_loaders(base_folder, num_simulations, load_files=("checkerboard"
     Returns:
         tuple: DataLoaders for training, validation, and testing, and the loaded data dictionary.
     """
-    loaded_data = load_all_npy_files(base_folder, num_simulations, load_files, skip_missing)
+    loaded_data = load_all_npy_files(base_folder, load_files, skip_missing)
     checkerboard = loaded_data["checkerboard"]
     displacements = loaded_data["displacements"]
 
@@ -502,13 +510,11 @@ def main():
     """
     ### Change the path to your local data directory
     data_path1 = r"C:\Users\Lenovo\Desktop\CSE 583 Software Development for Data Scientists\Project\Dataset1_Random_Board\Dataset1_Random_Board"
-    num_simulations1 = 1531  # change the number of simulatiions to your actual data size
 
     # Create DataLoaders
     print("Loading data...")
     train_loader, val_loader, test_loader, loaded_data1 = create_data_loaders(
         base_folder=data_path1,
-        num_simulations=num_simulations1,
         load_files=("checkerboard", "displacements")
     )
 
