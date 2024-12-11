@@ -115,7 +115,7 @@ Typical uses include:
 
 ## Installation and Setup
 **Prerequisites:**
-- Python 3.7+
+- Python 3.7–3.12
 - Git
 - (Optional) Conda for environment management
 - requests 2.25.1+
