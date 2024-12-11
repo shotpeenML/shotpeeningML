@@ -62,15 +62,14 @@ import shutil
 import os
 import threading
 import torch
-
-#Append src folder to path such that the called python files can be called.
+from PIL import Image, ImageTk
+# Append src folder to path such that the called python files can be called.
 sys.path.append(os.path.join(os.path.dirname(__file__), 'src', 'peen-ml'))
-# import data_viz as viz
-# import model as md
+# Deviating from PEP8 to make sure that this script can call the backend
 from model import train_model, create_data_loaders, create_model, evaluate_model
 from data_viz import visualize_checkerboard, compute_deformed_mesh, visualize_mesh
 from data_viz import visualize_stress_field
-from PIL import Image, ImageTk
+
 
 def check_install(package_id: str):
     """
@@ -430,7 +429,7 @@ class App:
         if not os.path.exists(data_folder):
             messagebox.showerror("Error", f"The folder path does not exist: {data_folder}")
             return
-        num_simulations = self.num_of_simulations(data_folder)
+        # num_simulations = self.num_of_simulations(data_folder)
         train_loader, val_loader, test_loader, _ = create_data_loaders(data_folder)
         model = create_model(input_channels=1, num_nodes=5202)
         criterion = torch.nn.MSELoss()
