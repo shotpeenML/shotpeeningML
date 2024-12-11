@@ -429,8 +429,8 @@ class App:
         if not os.path.exists(data_folder):
             messagebox.showerror("Error", f"The folder path does not exist: {data_folder}")
             return
-
-        train_loader, val_loader, test_loader, _ = create_data_loaders(data_folder, num_simulations=100)
+        num_simulations = self.num_of_simulations(data_folder)
+        train_loader, val_loader, test_loader, _ = create_data_loaders(data_folder, num_simulations)
         model = create_model(input_channels=1, num_nodes=5202)
         criterion = torch.nn.MSELoss()
         optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
@@ -468,6 +468,14 @@ class App:
         log_widget.insert(tk.END, "Training completed!\n")
         log_widget.see(tk.END)
         log_widget.config(state='disabled')
+    def num_of_simulations(self, folder_path):
+        simulation_folders = [
+              os.path.join(folder_path, folder)
+              for folder in os.listdir(folder_path)
+              if folder.startswith("Simulation_") and folder[len("Simulation_"):].isdigit()
+          ]
+        print(f"# Simulation folders: {len(simulation_folders)}")
+        return len(simulation_folders)
 
 
 # Check for missing modules
