@@ -1,19 +1,21 @@
-import pytest
-import numpy as np
+"""
+Tests for the data visualization module in the peen-ml project.
+"""
+
 import os
-import torch
 import sys
+import numpy as np
+import torch
+import pytest
 
 # Add the src directory to the Python module search path
-src_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../src/ShotPeenWithML'))
+src_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../src/peen-ml'))
 sys.path.append(src_path)
+
 from model import (
     load_all_npy_files,
     CheckerboardDataset,
-    NormalizedDataset,
     ChannelAttention,
-    SpatialAttention,
-    DisplacementPredictor,
 )
 
 # Smoke Test
@@ -26,7 +28,7 @@ def test_load_all_npy_files_smoke():
         os.makedirs(sim_folder, exist_ok=True)
         np.save(os.path.join(sim_folder, "checkerboard.npy"), np.random.rand(10, 10))
         np.save(os.path.join(sim_folder, "displacements.npy"), np.random.rand(10, 3))
-    
+
     result = load_all_npy_files(base_folder, 2)
     assert "checkerboard" in result
     assert "displacements" in result
@@ -60,10 +62,9 @@ def test_load_all_npy_files_edge_missing_file():
         sim_folder = os.path.join(base_folder, f"Simulation_{i}")
         os.makedirs(sim_folder, exist_ok=True)
         np.save(os.path.join(sim_folder, "checkerboard.npy"), np.random.rand(10, 10))
+
     with pytest.raises(FileNotFoundError):
         load_all_npy_files(base_folder, 1, skip_missing=False)
-
-
 
 if __name__ == "__main__":
     pytest.main()
