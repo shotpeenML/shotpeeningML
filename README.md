@@ -182,16 +182,20 @@ The ML workflow is defined in `src/peen-ml/model.py`:
    Place your simulation data (`.npy` files) into a structured directory (e.g., `Dataset1_Random_Board` with `Simulation_0`, `Simulation_1`, etc.).
 
 2. **Train Model or Load Existing Model via the GUI**:
-   ```
-   Harsh include images from GUI and explain
-   ```
-   ![Train_model](https://raw.githubusercontent.com/onestr1/peen-ml/refs/heads/main/images/train_model_page.png)
-   ![Load model](https://raw.githubusercontent.com/onestr1/peen-ml/refs/heads/main/images/load_model_page.png)
+    <img src="https://raw.githubusercontent.com/onestr1/peen-ml/refs/heads/main/images/train_model_page.png" alt="Train Model" width="400">
+    <img src="https://raw.githubusercontent.com/onestr1/peen-ml/refs/heads/main/images/load_model_page.png" alt="Load Model" width="400">
+
    Starting from the Main menu you can either train a new model or load a pre-existing model:
    - To train a model: 
       - Click on Train model. This will open a new window.
-      - In the new window click on  the 
-   - do that
+      - In the new window click on  the Browse button to search for the folder where your simulations reside.
+      - Plese wait a while for the training to complete, the progress bar and the text box will keep you informed on the progress(Pending)
+   - To load a trained or prexisting model and Evaluate it.
+      - Click on Load model. This too will open a new window. 
+      - In this new window click on the Brows button beside the "Model File" indication to select a prexisting model.
+      - After which you can find a shot peen profile you would like evaluated in the next browse button.
+      - Select where you would like your results to live in the Output path.
+      You can see a preview of your desired profile using the preview button, and a preview of the resiltant stresses, in the button next to it.
    - do the other thing
 
 3. **Evaluate the Model**:
