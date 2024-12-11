@@ -25,6 +25,7 @@ import torch
 from torch import nn, optim
 import matplotlib.pyplot as plt
 from torch.utils.data import Dataset, DataLoader, random_split
+from pathlib import Path
 
 # 1. Load All Numpy Files Function
 def load_all_npy_files(base_folder, load_files=("checkerboard", "displacements"), skip_missing=True):
@@ -507,6 +508,7 @@ def main():
     2. Create the model and initialize training components.
     3. Train the model with early stopping.
     4. Evaluate the model on the test set.
+    5. Save the trained model.
     """
     ### Change the path to your local data directory
     data_path1 = r"C:\Users\Lenovo\Desktop\CSE 583 Software Development for Data Scientists\Project\Dataset1_Random_Board\Dataset1_Random_Board"
@@ -517,10 +519,6 @@ def main():
         base_folder=data_path1,
         load_files=("checkerboard", "displacements")
     )
-
-    # Access the returned data
-    # checkerboard1 = loaded_data1["checkerboard"]
-    # displacements1 = loaded_data1["displacements"]
 
     # Model, Loss, and Optimizer
     input_channels = 1  # Checkerboard has 1 channel
@@ -558,6 +556,15 @@ def main():
         criterion=criterion
     )
     print("Evaluation completed.")
+
+## Only to save model
+    save_dir = Path(r"C:\Users\Lenovo\Desktop\CSE 583 Software Development for Data Scientists\Project\Pylint_improvement\saved_model")  # change to your save_path
+    save_dir.mkdir(parents=True, exist_ok=True)  # create the path if does not exits
+    save_path = save_dir / "trained_displacement_predictor_full_model.pth" # model name
+
+    torch.save(model, save_path)
+    print(f"Trained entire model has been saved to {save_path}.")
+##  Only to save model
 
 if __name__ == "__main__":
     main()
