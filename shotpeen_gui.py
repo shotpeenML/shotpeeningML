@@ -61,8 +61,15 @@ import subprocess
 import shutil
 import os
 import threading
+import torch
 import psutil
-
+#Append src folder to path such that the called python files can be called.
+sys.path.append(os.path.join(os.path.dirname(__file__), 'src\\peen-ml'))
+# import data_viz as viz
+# import model as md
+from model import train_model, create_data_loaders, create_model, evaluate_model
+from data_viz import visualize_checkerboard, compute_deformed_mesh, visualize_mesh
+from data_viz import visualize_stress_field
 from PIL import Image, ImageTk
 
 def check_install(package_id: str):
@@ -94,10 +101,6 @@ def check_install(package_id: str):
             except subprocess.CalledProcessError as conda_error:
                 print(f"Conda installation failed: {conda_error}")
                 print(f"Unable to install {package_id} with pip or conda.")
-
-#Append src folder to path such that the called python files can be called.
-sys.path.append(os.path.join(os.path.dirname(__file__), 'src\\peen-ml'))
-# import data_viz as viz
 # import model as md
 
 # viz.main()
@@ -205,14 +208,14 @@ class App:
         # TODO: look for folder path
         # File Selection
         tk.Label(frame,
-                  text="Training and Testing Data",
+                  text="Training and Testing Data Folder",
                     font=("Arial", 12)).grid(row=0,
                                               column=0,
                                                 sticky="w",
                                                   pady=10)
-        data_file_var = tk.StringVar()
+        data_folder_var = tk.StringVar()
         tk.Entry(frame,
-                  textvariable=data_file_var,
+                  textvariable=data_folder_var,
                     width=50).grid(row=0,
                                    column=1,
                                      padx=10,
@@ -220,10 +223,10 @@ class App:
         tk.Button(frame,
                    text="Browse",
                      command=lambda:
-                       self.browse_file(data_file_var)).grid(row=0,
+                       self.browse_file(data_folder_var)).grid(row=0,
                                                              column=2,
                                                               pady=5)
-        self.test_train_data_path = data_file_var
+        self.test_train_data_path = data_folder_var
 
         # Log and Progress Bar
         tk.Label(frame,
@@ -245,7 +248,7 @@ class App:
         tk.Button(frame,
                    text="Train",
                      command=lambda:
-                     self.start_training(log, progress), width=15).grid(row=4,
+                      self.train_model(data_folder_var.get()), width=15).grid(row=4,
                                                                           column=0,
                                                                            pady=20)
         tk.Button(frame,
@@ -290,18 +293,18 @@ class App:
 
         # STEP File Selection
         tk.Label(frame,
-                  text="STEP File",
+                  text="Input Peen Intensity Folder",
                     font=("Arial", 12)).grid(row=1, column=0, sticky="e", pady=10)
-        step_file_var = tk.StringVar()
+        checkerboard_file_var = tk.StringVar()
         tk.Entry(frame,
-                  textvariable=step_file_var,
+                  textvariable=checkerboard_file_var,
                     width=50).grid(row=1, column=1, padx=10, pady=5)
         tk.Button(frame,
                    text="Browse",
                      command=lambda:
-                       self.browse_file(step_file_var)).grid(row=1,
-                                                                            column=2,
-                                                                              pady=5)
+                       self.browse_directory(checkerboard_file_var)).grid(row=1,
+                                                            column=2,
+                                                              pady=5)
 
         # Output Path Selection
         tk.Label(frame,
@@ -321,7 +324,7 @@ class App:
         tk.Button(frame,
                    text="Input Peen Intensity Preview",
                      command=lambda:
-                       self.preview_file(step_file_var.get()),
+                       self.preview_file(checkerboard_file_var.get()),
                          width=25).grid(row=3,
                              column=0,
                                pady=20,
@@ -329,7 +332,7 @@ class App:
         tk.Button(frame,
                    text="Predicted Deformation Preview",
                      command=lambda:
-                       self.preview_file(step_file_var.get()),
+                       self.preview_file(checkerboard_file_var.get()),
                          width=25).grid(row=3,
                              column=2,
                                pady=20,
@@ -371,10 +374,10 @@ class App:
         Args:
             file_path (str): The path of the npy file to preview.
         """
-        if folder_path:
-            messagebox.showinfo("Preview", f"Previewing: {folder_path}")
-        else:
-            messagebox.showerror("Error", "No file selected!")
+        # if folder_path:
+        #     messagebox.showinfo("Preview", f"Previewing: {folder_path}")
+        # else:
+        #     messagebox.showerror("Error", "No file selected!")
         print("preview_task")
         # Check if the provided path is valid and exists
         if not os.path.exists(folder_path):
@@ -402,26 +405,39 @@ class App:
         except Exception as e:
             messagebox.showerror("Error", f"Failed to start the preview thread: {e}")
 
-    def run_preview(self, geometry_file_path):
+    def run_preview(self, geometry_folder_path):
         """
         This function runs the visualizer in a seperate thread 
         """
-        print(geometry_file_path)
+        print(geometry_folder_path)
 
         # TODO Edit the python version in production
-        command = [sys.executable, "Step_file_visualizer.py", geometry_file_path]
-        process = subprocess.Popen(command,shell=True,
-                                    stderr=subprocess.PIPE,
-                                      stdout=subprocess.PIPE)
-        shell_pid=process.pid
-        self.parent_process = psutil.Process(shell_pid)
-        stdout, stderr = process.communicate()
+        # command = [sys.executable, "Step_file_visualizer.py", geometry_file_path]
+        # process = subprocess.Popen(command,shell=True,
+        #                             stderr=subprocess.PIPE,
+        #                               stdout=subprocess.PIPE)
+        # shell_pid=process.pid
+        # self.parent_process = psutil.Process(shell_pid)
+        # stdout, stderr = process.communicate()
 
-        print(stdout)
-        if stderr:
-            print("Error:")
-            print(stderr)
+        visualize_checkerboard(geometry_folder_path)
 
+    def train_model(self, data_folder):
+        """
+        Trains a model using the data in the specified folder.
+        """
+        if not os.path.exists(data_folder):
+            messagebox.showerror("Error", f"The folder path does not exist: {data_folder}")
+            return
+
+        train_loader, val_loader, test_loader, _ = create_data_loaders(data_folder, num_simulations=100)
+        model = create_model(input_channels=1, num_nodes=5202)
+        criterion = torch.nn.MSELoss()
+        optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
+
+        train_model(model, train_loader, val_loader, criterion, optimizer, None)
+
+        messagebox.showinfo("Training Complete", "Model training has completed successfully!")
 
     def start_training(self, log_widget, progress_bar):
         """

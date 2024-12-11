@@ -20,7 +20,6 @@ Date:
 
 import os
 import numpy as np
-
 import torch
 from torch import nn, optim
 import matplotlib.pyplot as plt
