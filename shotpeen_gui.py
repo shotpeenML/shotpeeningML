@@ -62,7 +62,7 @@ import shutil
 import os
 import threading
 import torch
-import psutil
+
 #Append src folder to path such that the called python files can be called.
 sys.path.append(os.path.join(os.path.dirname(__file__), 'src', 'peen-ml'))
 # import data_viz as viz
@@ -223,7 +223,7 @@ class App:
         tk.Button(frame,
                    text="Browse",
                      command=lambda:
-                       self.browse_file(data_folder_var)).grid(row=0,
+                       self.browse_directory(data_folder_var)).grid(row=0,
                                                              column=2,
                                                               pady=5)
         self.test_train_data_path = data_folder_var
