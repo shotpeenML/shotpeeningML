@@ -1,72 +1,56 @@
-import pytest
-from unittest.mock import MagicMock, patch
-import tkinter as tk
+"""
+Tests for the GUI module in the peen-ml project.
+"""
+
 import os
 import sys
+from unittest.mock import patch
+import pytest
 
-# Add the src directory to the Python module search path
-src_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../src/ShotPeenWithML'))
+src_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../src/peen-ml'))
 sys.path.append(src_path)
+
 from shotpeen_gui import App
 
-
-# Smoke Test
-def test_app_initialization():
-    """Smoke Test: Ensure the app initializes without errors."""
-    root = tk.Tk()
-    app = App(root)
-    assert isinstance(app, App), "App did not initialize correctly."
-
-
-# One-Shot Test 1: Test Main Menu Navigation
-def test_main_menu():
-    """Test that the main menu is displayed."""
-    root = tk.Tk()
-    app = App(root)
-    assert len(app.root.winfo_children()) > 0, "Main menu widgets were not created."
+@pytest.fixture
+def app():
+    """Create an instance of the App class for testing, mocking GUI operations."""
+    with patch("tkinter.Tk") as MockTk, \
+         patch("PIL.Image.open"), \
+         patch("PIL.ImageTk.PhotoImage"):
+        mock_root = MockTk()
+        app_instance = App(mock_root)
+    return app_instance
 
 
-# One-Shot Test 2: Test Browse File Functionality
-@patch("Shotpeen_Gui.filedialog.askopenfilename", return_value="/path/to/mock/file")
-def test_browse_file(mock_askopenfilename):
-    """Test the browse file functionality."""
-    root = tk.Tk()
-    app = App(root)
-    mock_variable = MagicMock()
-    app.browse_file(mock_variable)
-    mock_askopenfilename.assert_called_once()
-    mock_variable.set.assert_called_with("/path/to/mock/file")
+def test_smoke_app_initialization(app):
+    """Smoke test to check if the App initializes without crashing."""
+    assert app is not None
+
+def test_train_model_directory_not_exists(app):
+    """One-shot test: Check if train_model correctly handles a non-existent directory."""
+    non_existing_dir = "/tmp/non_existent_data_folder"
+
+    with patch("tkinter.messagebox.showerror") as mock_error, \
+         patch("os.path.exists", return_value=False):
+        app.train_model(non_existing_dir)
+        mock_error.assert_called_once_with("Error", f"The folder path does not exist: {non_existing_dir}")
 
 
-# Edge Test 1: Test Empty File Selection
-@patch("Shotpeen_Gui.filedialog.askopenfilename", return_value="")
-def test_browse_file_empty(mock_askopenfilename):
-    """Test browsing with no file selected."""
-    root = tk.Tk()
-    app = App(root)
-    mock_variable = MagicMock()
-    app.browse_file(mock_variable)
-    mock_askopenfilename.assert_called_once()
-    mock_variable.set.assert_not_called()
+def test_preview_file_directory_not_exists(app):
+    """Edge test: Check if preview_file handles a non-existent directory."""
+    non_existing_dir = "/tmp/non_existent_data_folder"
+
+    with patch("tkinter.messagebox.showerror") as mock_error:
+        app.preview_file(non_existing_dir)
+        mock_error.assert_called_once_with("Error", f"The Folder path does not exist: {non_existing_dir}")
 
 
-# Edge Test 2: Test Training Completion
-@patch("Shotpeen_Gui.App.finish_training")
-def test_training_completion(mock_finish_training):
-    """Test that training process completes."""
-    root = tk.Tk()
-    app = App(root)
-    log_widget = MagicMock()
-    progress_bar = MagicMock()
-    
-    # Start training (this schedules the finish_training call)
-    app.start_training(log_widget, progress_bar)
-    
-    # Simulate the execution of the `after` scheduled task
-    app.root.update_idletasks()  # Process any pending events
-    app.root.after_idle(mock_finish_training.assert_called_once_with, log_widget, progress_bar)
-
-
-
-if __name__ == "__main__":
-    pytest.main()
+def test_preview_file_directory_empty(app):
+    """Edge test: Check if preview_file handles an empty directory."""
+    empty_dir = "/tmp/empty_folder"
+    os.makedirs(empty_dir, exist_ok=True)
+    with patch("tkinter.messagebox.showwarning") as mock_warning:
+        app.preview_file(empty_dir)
+        mock_warning.assert_called_once_with("Warning", "The directory is empty.")
+    os.rmdir(empty_dir)
