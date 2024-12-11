@@ -262,10 +262,8 @@ def visualize_deformation(simulation_folder, deformed_coords, element_nodes, ali
 def main():
     """Main function to execute all visualization steps."""
     # Path to the simulation folder
-    simulation_folder = (
-        r'\\udrive.uw.edu\onestr\Shot Peening\Checkerboard\Method1'
-        r'\TestBatch\Simulation_0'
-    )
+    #simulation_folder = (r'\tests\simulation_0')
+    simulation_folder = os.path.join(os.getcwd(), 'tests', 'simulation_0')
 
     # Deformation scale (adjust as needed)
     scale_factor = 1
