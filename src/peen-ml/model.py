@@ -427,7 +427,6 @@ def train_model(model, train_loader, val_loader, criterion, optimizer, scheduler
 
     plt.ioff()
     plt.show()
-
     return train_losses, val_losses
 
 # 8. Evaluation Function
@@ -513,6 +512,7 @@ def main():
     ### Change the path to your local data directory
     data_path1 = r"C:\Users\Lenovo\Desktop\CSE 583 Software Development for Data Scientists\Project\Dataset1_Random_Board\Dataset1_Random_Board"
 
+
     # Create DataLoaders
     print("Loading data...")
     train_loader, val_loader, test_loader, loaded_data1 = create_data_loaders(
@@ -557,14 +557,54 @@ def main():
     )
     print("Evaluation completed.")
 
-## Only to save model
-    save_dir = Path(r"C:\Users\Lenovo\Desktop\CSE 583 Software Development for Data Scientists\Project\Pylint_improvement\saved_model")  # change to your save_path
-    save_dir.mkdir(parents=True, exist_ok=True)  # create the path if does not exits
-    save_path = save_dir / "trained_displacement_predictor_full_model.pth" # model name
-
-    torch.save(model, save_path)
-    print(f"Trained entire model has been saved to {save_path}.")
-##  Only to save model
-
 if __name__ == "__main__":
     main()
+
+
+
+
+
+def train_save_gui(data_path):
+    # Create DataLoaders
+    print("Loading data...")
+    train_loader, val_loader, test_loader, loaded_data1 = create_data_loaders(
+        base_folder=data_path,
+        load_files=("checkerboard", "displacements")
+    )
+
+    # Model, Loss, and Optimizer
+    input_channels = 1  # Checkerboard has 1 channel
+    num_nodes = 5202  # Number of nodes
+    model = create_model(input_channels, num_nodes)
+    print("Model created.")
+
+    criterion = nn.MSELoss()  # Loss function
+    optimizer = optim.Adam(model.parameters(), lr=0.001, weight_decay=1e-5)  # Optimizer
+    scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=2, gamma=0.5)  # Reduce LR every 2 epochs
+
+    # Training
+    epochs = 10
+    patience = 5  # Number of epochs to wait for improvement before stopping early
+    print("Starting training...")
+    train_losses, val_losses = train_model(
+        model=model,
+        train_loader=train_loader,
+        val_loader=val_loader,
+        criterion=criterion,
+        optimizer=optimizer,
+        scheduler=scheduler,
+        epochs=epochs,
+        patience=patience
+    )
+    print(
+        f"Training completed. The last training loss is: {train_losses[-1]:.10f}, "
+        f"and the last validation loss is: {val_losses[-1]:.10f}."
+    )
+    # one step back of the current path and Save the trained model
+    save_dir = Path("../saved_model")
+    save_dir.mkdir(parents=True, exist_ok=True)  # creat the path if not exist
+    save_path = save_dir / "trained_displacement_predictor_full_model.pth"  # model name
+
+    torch.save(model, save_path)
+    print(f"Trained model has been saved to {save_path}.")
+
