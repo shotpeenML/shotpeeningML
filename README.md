@@ -183,10 +183,8 @@ The ML workflow is defined in `src/peen-ml/model.py`:
    ```
    Harsh include images from GUI and explain
    ```
-   ![Load_model_page](https://raw.githubusercontent.com/onestr1/peen-ml/refs/heads/main/images/load_model_page.png)
-   ![train_model_page](https://raw.githubusercontent.com/onestr1/peen-ml/refs/heads/main/images/train_model_page.png)
-
-
+   ![Train_model](https://raw.githubusercontent.com/onestr1/peen-ml/refs/heads/main/images/train_model_page.png)
+   ![Load model](https://raw.githubusercontent.com/onestr1/peen-ml/refs/heads/main/images/load_model_page.png)
    This will:
    - do this
    - do that
