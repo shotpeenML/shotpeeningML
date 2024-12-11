@@ -135,12 +135,12 @@ Typical uses include:
 2. **Create and Activate a Virtual Environment (Recommended):**
    ```bash
    python3 -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scriptsctivate
+   source venv/bin/activate
    ```
 
 3. **Install Dependencies:**
 
-   Directly via pyproject.toml using `pip`:
+   Directly via pyproject.toml using `pip` (make sure this is run within peen-ml):
    ```bash
    pip install .
    ```
