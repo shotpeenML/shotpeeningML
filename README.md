@@ -23,6 +23,7 @@ Shot peening is a manufacturing process used to improve material properties by b
 - Compare multiple recipes without running time-consuming simulations.
 - Visualize predicted outcomes and analyze their effects on component geometry.
 
+
 This project was developed as part of the CSE 583 Software Development for Data Scientists course at the University of Washington, aiming to demonstrate best practices in code organization, testing, documentation, and continuous integration.
 
 ### Style
@@ -114,7 +115,7 @@ Typical uses include:
 
 ## Installation and Setup
 **Prerequisites:**
-- Python 3.7+
+- Python 3.7–3.12
 - Git
 - (Optional) Conda for environment management
 - requests 2.25.1+
