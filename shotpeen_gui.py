@@ -19,7 +19,8 @@ Dependencies:
 - matplotlib>=3.4.0
 - pandas>=1.3.0
 - pytorch>=1.9.0
-- tkinter (for GUI functionality)
+- tkinter
+- pillow
 
 Function Definitions:
 1. `check_install(package_id: str)`: Checks if a required package is installed, and
@@ -59,6 +60,9 @@ import sys
 import subprocess
 import shutil
 import os
+import threading
+import psutil
+
 from PIL import Image, ImageTk
 
 def check_install(package_id: str):
@@ -96,6 +100,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), 'src\\peen-ml'))
 # import data_viz as viz
 # import model as md
 
+# viz.main()
 class App:
     """
     This app provides a main menu with options to train a new model or load
@@ -114,6 +119,8 @@ class App:
         self.root = root_tk
         self.root.title("Model GUI")
         self.root.geometry("800x600")
+        self.test_train_data_path = ""
+        self.parent_process = None  # Initialize the attribute
         self.main_menu()
 
     def main_menu(self):
@@ -169,6 +176,7 @@ class App:
     def get_file_path(self, relative_path):
         """
         Gets the file path of the requested file, works in development or .exe mode
+        mainly for finding the path this repository is in.
         Args:
             relative_path (str): The relative path to the desired file.
         
@@ -178,6 +186,7 @@ class App:
         # Use the _MEIPASS attribute or abs path
         base_path = getattr(sys, '_MEIPASS', os.path.abspath("."))
         return os.path.join(base_path, relative_path)
+
     def train_model_dialog(self):
         """
         Opens a dialog window for training a model.
@@ -193,7 +202,7 @@ class App:
         # Training Layout
         frame = tk.Frame(dialog, padx=20, pady=20)
         frame.pack(expand=True, fill=tk.BOTH)
-
+        # TODO: look for folder path
         # File Selection
         tk.Label(frame,
                   text="Training and Testing Data",
@@ -214,6 +223,7 @@ class App:
                        self.browse_file(data_file_var)).grid(row=0,
                                                              column=2,
                                                               pady=5)
+        self.test_train_data_path = data_file_var
 
         # Log and Progress Bar
         tk.Label(frame,
@@ -306,19 +316,27 @@ class App:
                      command=lambda: self.browse_directory(output_path_var)).grid(row=2,
                                                                                    column=2,
                                                                                      pady=5)
-
+        # TODO: Checkerboard Pattern, numpy array
         # Buttons at the bottom
         tk.Button(frame,
-                   text="Preview STEP File",
+                   text="Input Peen Intensity Preview",
                      command=lambda:
                        self.preview_file(step_file_var.get()),
-                         width=20).grid(row=3,
-                             column=1,
+                         width=25).grid(row=3,
+                             column=0,
+                               pady=20,
+                                   sticky="n")
+        tk.Button(frame,
+                   text="Predicted Deformation Preview",
+                     command=lambda:
+                       self.preview_file(step_file_var.get()),
+                         width=25).grid(row=3,
+                             column=2,
                                pady=20,
                                    sticky="n")
         tk.Button(frame,
                    text="Back to Main Menu",
-                     command=dialog.destroy, width=15).grid(row=4,
+                     command=dialog.destroy, width=30).grid(row=4,
                                                              column=1,
                                                                pady=20
                                                                , sticky="n")
@@ -345,17 +363,65 @@ class App:
         if dirpath:
             variable.set(dirpath)
 
-    def preview_file(self, file_path):
+    def preview_file(self, folder_path):
         """
-        Previews the selected STEP file by displaying a message with its path.
+        Previews the selected .npy file by displaying a message with its path.
+        Helps preview the checkerboard pattern sent in and pushed out.
         
         Args:
-            file_path (str): The path of the STEP file to preview.
+            file_path (str): The path of the npy file to preview.
         """
-        if file_path:
-            messagebox.showinfo("Preview", f"Previewing: {file_path}")
+        if folder_path:
+            messagebox.showinfo("Preview", f"Previewing: {folder_path}")
         else:
             messagebox.showerror("Error", "No file selected!")
+        print("preview_task")
+        # Check if the provided path is valid and exists
+        if not os.path.exists(folder_path):
+            messagebox.showerror("Error", f"The Folder path does not exist: {folder_path}")
+            return
+        # Ensure the path is a directory or handle invalid input
+        if not os.path.isdir(folder_path):
+            messagebox.showerror("Error", f"The provided path is not a directory: {folder_path}")
+            return
+
+        try:
+            entry_values = os.listdir(folder_path)  # List contents of the directory
+            if not entry_values:
+                messagebox.showwarning("Warning", "The directory is empty.")
+                return
+        except OSError as e:
+            messagebox.showerror("Error", f"Failed to access the directory: {e}")
+            return
+        # Run the preview in a separate thread
+        try:
+            thread = threading.Thread(target=self.run_preview, args=(folder_path,))
+            thread.start()
+        except RuntimeError as e:
+            messagebox.showerror("Error", f"Threading error: {e}")
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to start the preview thread: {e}")
+
+    def run_preview(self, geometry_file_path):
+        """
+        This function runs the visualizer in a seperate thread 
+        """
+        print(geometry_file_path)
+
+        # TODO Edit the python version in production
+        command = [sys.executable, "Step_file_visualizer.py", geometry_file_path]
+        process = subprocess.Popen(command,shell=True,
+                                    stderr=subprocess.PIPE,
+                                      stdout=subprocess.PIPE)
+        shell_pid=process.pid
+        self.parent_process = psutil.Process(shell_pid)
+        stdout, stderr = process.communicate()
+
+        print(stdout)
+        if stderr:
+            print("Error:")
+            print(stderr)
+
 
     def start_training(self, log_widget, progress_bar):
         """
