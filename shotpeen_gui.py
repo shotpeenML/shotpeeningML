@@ -200,7 +200,7 @@ class App:
         """
         dialog = tk.Toplevel(self.root)
         dialog.title("Train Model")
-        dialog.geometry("700x500")
+        dialog.geometry("1000x700")
 
         # Training Layout
         frame = tk.Frame(dialog, padx=20, pady=20)
@@ -264,7 +264,7 @@ class App:
         """
         dialog = tk.Toplevel(self.root)
         dialog.title("Load Model")
-        dialog.geometry("700x500")
+        dialog.geometry("900x500")
 
         # Load Model Layout
         frame = tk.Frame(dialog, padx=20, pady=20)
@@ -293,8 +293,9 @@ class App:
 
         # STEP File Selection
         tk.Label(frame,
-                  text="Input Peen Intensity Folder",
-                    font=("Arial", 12)).grid(row=1, column=0, sticky="e", pady=10)
+                  text="Peen Intensity Folder",
+                    font=("Arial", 12)).grid(row=1, column=0, sticky="e",
+                                              pady=10, padx=10)
         checkerboard_file_var = tk.StringVar()
         tk.Entry(frame,
                   textvariable=checkerboard_file_var,
@@ -430,7 +431,7 @@ class App:
             messagebox.showerror("Error", f"The folder path does not exist: {data_folder}")
             return
         num_simulations = self.num_of_simulations(data_folder)
-        train_loader, val_loader, test_loader, _ = create_data_loaders(data_folder, num_simulations)
+        train_loader, val_loader, test_loader, _ = create_data_loaders(data_folder)
         model = create_model(input_channels=1, num_nodes=5202)
         criterion = torch.nn.MSELoss()
         optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
