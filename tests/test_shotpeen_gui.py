@@ -7,7 +7,7 @@ import sys
 # Add the src directory to the Python module search path
 src_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../src/ShotPeenWithML'))
 sys.path.append(src_path)
-from Shotpeen_Gui import App
+from shotpeen_gui import App
 
 
 # Smoke Test
