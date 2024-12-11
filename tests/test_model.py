@@ -22,14 +22,7 @@ from model import (
 def test_load_all_npy_files_smoke():
     """Smoke test to check if the function runs without errors."""
     base_folder = "./test_simulations"
-    os.makedirs(base_folder, exist_ok=True)
-    for i in range(2):  # Create dummy simulations
-        sim_folder = os.path.join(base_folder, f"Simulation_{i}")
-        os.makedirs(sim_folder, exist_ok=True)
-        np.save(os.path.join(sim_folder, "checkerboard.npy"), np.random.rand(10, 10))
-        np.save(os.path.join(sim_folder, "displacements.npy"), np.random.rand(10, 3))
-
-    result = load_all_npy_files(base_folder, 2)
+    result = load_all_npy_files(base_folder, ("checkerboard", "displacements"))
     assert "checkerboard" in result
     assert "displacements" in result
     assert result["checkerboard"].shape[0] == 2  # 2 simulations
@@ -57,14 +50,8 @@ def test_channel_attention_one_shot():
 def test_load_all_npy_files_edge_missing_file():
     """Test load_all_npy_files with a missing file."""
     base_folder = "./test_simulations_edge"
-    os.makedirs(base_folder, exist_ok=True)
-    for i in range(1):  # Create a single simulation folder
-        sim_folder = os.path.join(base_folder, f"Simulation_{i}")
-        os.makedirs(sim_folder, exist_ok=True)
-        np.save(os.path.join(sim_folder, "checkerboard.npy"), np.random.rand(10, 10))
-
     with pytest.raises(FileNotFoundError):
-        load_all_npy_files(base_folder, 1, skip_missing=False)
+        load_all_npy_files(base_folder, ("checkerboard", "displacements"), skip_missing=False)
 
 if __name__ == "__main__":
     pytest.main()
