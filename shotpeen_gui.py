@@ -67,6 +67,7 @@ from PIL import Image, ImageTk
 sys.path.append(os.path.join(os.path.dirname(__file__), 'src', 'peen-ml'))
 # Deviating from PEP8 to make sure that this script can call the backend
 from model import train_model, create_data_loaders, create_model, evaluate_model
+from model import train_save_gui
 from data_viz import visualize_checkerboard, compute_deformed_mesh, visualize_mesh
 from data_viz import visualize_stress_field
 
@@ -247,7 +248,7 @@ class App:
         tk.Button(frame,
                    text="Train",
                      command=lambda:
-                      self.train_model(data_folder_var.get()), width=15).grid(row=4,
+                      train_save_gui(data_folder_var.get()), width=15).grid(row=4,
                                                                           column=0,
                                                                            pady=20)
         tk.Button(frame,
