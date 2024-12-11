@@ -21,7 +21,7 @@ from model import (
 # Smoke Test
 def test_load_all_npy_files_smoke():
     """Smoke test to check if the function runs without errors."""
-    base_folder = "./test_simulations"
+    base_folder = "./tests/test_simulations"
     result = load_all_npy_files(base_folder, ("checkerboard", "displacements"))
     assert "checkerboard" in result
     assert "displacements" in result
@@ -49,7 +49,7 @@ def test_channel_attention_one_shot():
 # Edge Tests
 def test_load_all_npy_files_edge_missing_file():
     """Test load_all_npy_files with a missing file."""
-    base_folder = "./test_simulations_edge"
+    base_folder = "./tests/test_simulations_edge"
     with pytest.raises(FileNotFoundError):
         load_all_npy_files(base_folder, ("checkerboard", "displacements"), skip_missing=False)
 
