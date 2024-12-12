@@ -1,3 +1,5 @@
+#pylint: disable-all
+
 import os
 import random
 from abaqus import *
