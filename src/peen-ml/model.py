@@ -561,9 +561,6 @@ if __name__ == "__main__":
     main()
 
 
-
-
-
 def train_save_gui(data_path):
     # Create DataLoaders
     print("Loading data...")
@@ -600,11 +597,86 @@ def train_save_gui(data_path):
         f"Training completed. The last training loss is: {train_losses[-1]:.10f}, "
         f"and the last validation loss is: {val_losses[-1]:.10f}."
     )
-    # one step back of the current path and Save the trained model
-    save_dir = Path("../saved_model")
-    save_dir.mkdir(parents=True, exist_ok=True)  # creat the path if not exist
-    save_path = save_dir / "trained_displacement_predictor_full_model.pth"  # model name
+    #create the saved_model folder and save the trained model
+    save_dir = Path(data_path) / "saved_model"
+    save_dir.mkdir(parents=True, exist_ok=True)  # Create the path if not exist
+    save_path = save_dir / "trained_displacement_predictor_full_model.pth"  # Model name
 
     torch.save(model, save_path)
     print(f"Trained model has been saved to {save_path}.")
 
+
+### Evaluation_GUI part
+def create_test_loader(test_data_path, load_files=("checkerboard", "displacements"), batch_size=15):
+    """
+    Create a DataLoader using the entire dataset from test_data_path.
+
+    Args:
+        test_data_path (str): Path to the folder containing the test data.
+        load_files (tuple): Names of the files to load (default: ("checkerboard", "displacements")).
+        batch_size (int): Batch size for the DataLoader.
+
+    Returns:
+        DataLoader: DataLoader for the entire dataset in test_data_path.
+    """
+    # Load the entire dataset from the specified path
+    loaded_data = load_all_npy_files(test_data_path, load_files, skip_missing=True)
+    checkerboards = loaded_data["checkerboard"]
+    displacements = loaded_data["displacements"]
+
+    # Create a dataset using the entire loaded data
+    full_dataset = CheckerboardDataset(checkerboards, displacements)
+    normalized_dataset = NormalizedDataset(full_dataset)
+
+    # Create a DataLoader for the entire dataset
+    test_loader = DataLoader(normalized_dataset, batch_size=batch_size, shuffle=False)
+
+    return test_loader
+
+def load_and_evaluate_model(model_path, test_data_path):
+    # Load the model
+    model = torch.load(model_path)
+    model.eval()
+    print("Model loaded successfully.")
+
+    # Use the entire test data as the DataLoader
+    test_loader = create_test_loader(test_data_path, batch_size=15)
+    print("Test data loaded successfully.")
+
+    # Define loss function
+    criterion = nn.MSELoss()
+
+    # Evaluate the model
+    print("Evaluating the model...")
+    evaluate_model(
+        model=model,
+        test_loader=test_loader,
+        criterion=criterion
+    )
+    print("Evaluation completed.")
+
+
+def load_and_evaluate_model(model_path,test_data_path):
+    # Load the model
+    model = torch.load(model_path)
+    model.eval()
+    print("Model loaded successfully.")
+
+    # Load the test data
+    _, _, test_loader, _ = create_data_loaders(
+        base_folder=test_data_path,
+        load_files=("checkerboard", "displacements")
+    )
+    print("Test data loaded successfully.")
+
+    # Define loss function
+    criterion = nn.MSELoss()
+
+    # Evaluate the model
+    print("Evaluating the model...")
+    evaluate_model(
+        model=model,
+        test_loader=test_loader,
+        criterion=criterion
+    )
+    print("Evaluation completed.")
