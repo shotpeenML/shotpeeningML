@@ -66,10 +66,10 @@ from PIL import Image, ImageTk
 # Append src folder to path such that the called python files can be called.
 sys.path.append(os.path.join(os.path.dirname(__file__), 'src', 'peen-ml'))
 # Deviating from PEP8 to make sure that this script can call the backend
-from model import train_model, create_data_loaders, create_model, evaluate_model
+from model import train_model, create_data_loaders, create_model #, evaluate_model
 from model import train_save_gui
-from data_viz import visualize_checkerboard, compute_deformed_mesh, visualize_mesh
-from data_viz import visualize_stress_field
+from data_viz import visualize_checkerboard #, compute_deformed_mesh, visualize_mesh
+# from data_viz import visualize_stress_field
 
 
 def check_install(package_id: str):
@@ -141,7 +141,8 @@ class App:
         main_frame = tk.Frame(self.root, padx=20, pady=20)
         main_frame.pack(expand=True)
         try:
-            bullet_bill_path = os.path.join(os.path.dirname(__file__), 'src', 'peen-ml', 'bullet_bill.png')
+            bullet_bill_path = os.path.join(os.path.dirname(__file__),
+                                             'src', 'peen-ml', 'bullet_bill.png')
             image = Image.open(bullet_bill_path)
             image = image.resize((400, 250), Image.Resampling.LANCZOS)
             self.splash_image = ImageTk.PhotoImage(image)
@@ -205,7 +206,7 @@ class App:
         # Training Layout
         frame = tk.Frame(dialog, padx=20, pady=20)
         frame.pack(expand=True, fill=tk.BOTH)
-        # TODO: look for folder path
+        # TODONE: look for folder path
         # File Selection
         tk.Label(frame,
                   text="Training and Testing Data Folder",
@@ -320,7 +321,7 @@ class App:
                      command=lambda: self.browse_directory(output_path_var)).grid(row=2,
                                                                                    column=2,
                                                                                      pady=5)
-        # TODO: Checkerboard Pattern, numpy array
+        # TODONE: Checkerboard Pattern, numpy array
         # Buttons at the bottom
         tk.Button(frame,
                    text="Input Peen Intensity Preview",
@@ -404,6 +405,7 @@ class App:
         except RuntimeError as e:
             messagebox.showerror("Error", f"Threading error: {e}")
         except Exception as e:
+            # Fail safe, deviation from PEP8
             messagebox.showerror("Error", f"Failed to start the preview thread: {e}")
 
     def run_preview(self, geometry_folder_path):
@@ -412,7 +414,7 @@ class App:
         """
         print(geometry_folder_path)
 
-        # TODO Edit the python version in production
+        # TODONE Edit the python version in production
         # command = [sys.executable, "Step_file_visualizer.py", geometry_file_path]
         # process = subprocess.Popen(command,shell=True,
         #                             stderr=subprocess.PIPE,
@@ -431,7 +433,7 @@ class App:
             messagebox.showerror("Error", f"The folder path does not exist: {data_folder}")
             return
         # num_simulations = self.num_of_simulations(data_folder)
-        train_loader, val_loader, test_loader, _ = create_data_loaders(data_folder)
+        train_loader, val_loader, _, _ = create_data_loaders(data_folder)
         model = create_model(input_channels=1, num_nodes=5202)
         criterion = torch.nn.MSELoss()
         optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
