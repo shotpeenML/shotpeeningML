@@ -1,0 +1,326 @@
+# -*- coding: mbcs -*-
+from part import *
+from material import *
+from section import *
+from assembly import *
+from step import *
+from interaction import *
+from load import *
+from mesh import *
+from optimization import *
+from job import *
+from sketch import *
+from visualization import *
+from connectorBehavior import *
+mdb.Model(modelType=STANDARD_EXPLICIT, name='Script')
+mdb.models['Script'].ConstrainedSketch(name='__profile__', sheetSize=200.0)
+mdb.models['Script'].sketches['__profile__'].rectangle(point1=(0.0, 0.0), 
+    point2=(1, 1))
+mdb.models['Script'].Part(dimensionality=THREE_D, name='Sheet', type=
+    DEFORMABLE_BODY)
+mdb.models['Script'].parts['Sheet'].BaseShell(sketch=
+    mdb.models['Script'].sketches['__profile__'])
+del mdb.models['Script'].sketches['__profile__']
+mdb.models['Script'].parts['Sheet'].Set(faces=
+    mdb.models['Script'].parts['Sheet'].faces.getSequenceFromMask(mask=(
+    '[#1 ]', ), ), name='Sheet-all')
+mdb.models['Script'].parts['Sheet'].Surface(name='Sheet-top', side1Faces=
+    mdb.models['Script'].parts['Sheet'].faces.getSequenceFromMask(mask=(
+    '[#1 ]', ), ))
+mdb.models['Script'].parts['Sheet'].Surface(name='Sheet-bottom', side2Faces=
+    mdb.models['Script'].parts['Sheet'].faces.getSequenceFromMask(mask=(
+    '[#1 ]', ), ))
+mdb.models['Script'].Part(name='Peen', objectToCopy=
+    mdb.models['Script'].parts['Sheet'])
+mdb.models['Script'].Material(name='Aluminum-005')
+mdb.models['Script'].materials['Aluminum-005'].Elastic(table=((68000000000.0, 
+    0.36), ))
+mdb.models['Script'].materials['Aluminum-005'].Expansion(table=((0.005, ), ))
+mdb.models['Script'].HomogeneousShellSection(idealization=NO_IDEALIZATION, 
+    integrationRule=SIMPSON, material='Aluminum-005', name='Peen-005', 
+    nodalThicknessField='', numIntPts=5, poissonDefinition=DEFAULT, 
+    preIntegrate=OFF, temperature=GRADIENT, thickness=0.0002, thicknessField=''
+    , thicknessModulus=None, thicknessType=UNIFORM, useDensity=OFF)
+mdb.models['Script'].Material(name='Aluminum-01')
+mdb.models['Script'].materials['Aluminum-01'].Elastic(table=((68000000000.0, 
+    0.36), ))
+mdb.models['Script'].materials['Aluminum-01'].Expansion(table=((0.01, ), ))
+mdb.models['Script'].HomogeneousShellSection(idealization=NO_IDEALIZATION, 
+    integrationRule=SIMPSON, material='Aluminum-01', name='Peen-01', 
+    nodalThicknessField='', numIntPts=5, poissonDefinition=DEFAULT, 
+    preIntegrate=OFF, temperature=GRADIENT, thickness=0.0002, thicknessField=''
+    , thicknessModulus=None, thicknessType=UNIFORM, useDensity=OFF)
+mdb.models['Script'].Material(name='Aluminum-015')
+mdb.models['Script'].materials['Aluminum-015'].Elastic(table=((68000000000.0, 
+    0.36), ))
+mdb.models['Script'].materials['Aluminum-015'].Expansion(table=((0.015, ), ))
+mdb.models['Script'].HomogeneousShellSection(idealization=NO_IDEALIZATION, 
+    integrationRule=SIMPSON, material='Aluminum-015', name='Peen-015', 
+    nodalThicknessField='', numIntPts=5, poissonDefinition=DEFAULT, 
+    preIntegrate=OFF, temperature=GRADIENT, thickness=0.0002, thicknessField=''
+    , thicknessModulus=None, thicknessType=UNIFORM, useDensity=OFF)
+mdb.models['Script'].Material(name='Aluminum-02')
+mdb.models['Script'].materials['Aluminum-02'].Elastic(table=((68000000000.0, 
+    0.36), ))
+mdb.models['Script'].materials['Aluminum-02'].Expansion(table=((0.02, ), ))
+mdb.models['Script'].HomogeneousShellSection(idealization=NO_IDEALIZATION, 
+    integrationRule=SIMPSON, material='Aluminum-02', name='Peen-02', 
+    nodalThicknessField='', numIntPts=5, poissonDefinition=DEFAULT, 
+    preIntegrate=OFF, temperature=GRADIENT, thickness=0.0002, thicknessField=''
+    , thicknessModulus=None, thicknessType=UNIFORM, useDensity=OFF)
+mdb.models['Script'].Material(name='Aluminum-Sheet')
+mdb.models['Script'].materials['Aluminum-Sheet'].Elastic(table=((68000000000.0, 
+    0.36), ))
+mdb.models['Script'].HomogeneousShellSection(idealization=NO_IDEALIZATION, 
+    integrationRule=SIMPSON, material='Aluminum-Sheet', name='Sheet', 
+    nodalThicknessField='', numIntPts=5, poissonDefinition=DEFAULT, 
+    preIntegrate=OFF, temperature=GRADIENT, thickness=0.005, thicknessField='', 
+    thicknessModulus=None, thicknessType=UNIFORM, useDensity=OFF)
+mdb.models['Script'].parts['Sheet'].SectionAssignment(offset=0.52, offsetField=
+    '', offsetType=SINGLE_VALUE, region=
+    mdb.models['Script'].parts['Sheet'].sets['Sheet-all'], sectionName='Sheet', 
+    thicknessAssignment=FROM_SECTION)
+mdb.models['Script'].ConstrainedSketch(name='__checkerboard__', sheetSize=1.0)
+mdb.models['Script'].sketches['__checkerboard__'].rectangle(point1=(0.0, 0.0), 
+    point2=(0.2, 0.2))
+mdb.models['Script'].sketches['__checkerboard__'].rectangle(point1=(0.0, 0.4), 
+    point2=(0.2, 0.6))
+mdb.models['Script'].sketches['__checkerboard__'].rectangle(point1=(0.0, 0.8), 
+    point2=(0.2, 1.0))
+mdb.models['Script'].sketches['__checkerboard__'].rectangle(point1=(0.2, 0.2), 
+    point2=(0.4, 0.4))
+mdb.models['Script'].sketches['__checkerboard__'].rectangle(point1=(0.2, 0.6), 
+    point2=(0.4, 0.8))
+mdb.models['Script'].sketches['__checkerboard__'].rectangle(point1=(0.4, 0.0), 
+    point2=(0.6, 0.2))
+mdb.models['Script'].sketches['__checkerboard__'].rectangle(point1=(0.4, 0.4), 
+    point2=(0.6, 0.6))
+mdb.models['Script'].sketches['__checkerboard__'].rectangle(point1=(0.4, 0.8), 
+    point2=(0.6, 1.0))
+mdb.models['Script'].sketches['__checkerboard__'].rectangle(point1=(0.6, 0.2), 
+    point2=(0.8, 0.4))
+mdb.models['Script'].sketches['__checkerboard__'].rectangle(point1=(0.6, 0.6), 
+    point2=(0.8, 0.8))
+mdb.models['Script'].sketches['__checkerboard__'].rectangle(point1=(0.8, 0.0), 
+    point2=(1.0, 0.2))
+mdb.models['Script'].sketches['__checkerboard__'].rectangle(point1=(0.8, 0.4), 
+    point2=(1.0, 0.6))
+mdb.models['Script'].sketches['__checkerboard__'].rectangle(point1=(0.8, 0.8), 
+    point2=(1.0, 1.0))
+mdb.models['Script'].parts['Peen'].PartitionFaceBySketch(faces=
+    mdb.models['Script'].parts['Peen'].faces.getSequenceFromMask(mask=('[#1 ]', 
+    ), ), sketch=mdb.models['Script'].sketches['__checkerboard__'])
+mdb.models['Script'].parts['Peen'].Set(faces=
+    mdb.models['Script'].parts['Peen'].faces.getSequenceFromMask(mask=('[#8 ]', 
+    ), ), name='Peen-set-0_0')
+mdb.models['Script'].parts['Peen'].Set(faces=
+    mdb.models['Script'].parts['Peen'].faces.getSequenceFromMask(mask=(
+    '[#200 ]', ), ), name='Peen-set-0_1')
+mdb.models['Script'].parts['Peen'].Set(faces=
+    mdb.models['Script'].parts['Peen'].faces.getSequenceFromMask(mask=(
+    '[#10 ]', ), ), name='Peen-set-0_2')
+mdb.models['Script'].parts['Peen'].Set(faces=
+    mdb.models['Script'].parts['Peen'].faces.getSequenceFromMask(mask=('[#2 ]', 
+    ), ), name='Peen-set-0_3')
+mdb.models['Script'].parts['Peen'].Set(faces=
+    mdb.models['Script'].parts['Peen'].faces.getSequenceFromMask(mask=('[#1 ]', 
+    ), ), name='Peen-set-0_4')
+mdb.models['Script'].parts['Peen'].Set(faces=
+    mdb.models['Script'].parts['Peen'].faces.getSequenceFromMask(mask=(
+    '[#100 ]', ), ), name='Peen-set-1_0')
+mdb.models['Script'].parts['Peen'].Set(faces=
+    mdb.models['Script'].parts['Peen'].faces.getSequenceFromMask(mask=(
+    '[#8000 ]', ), ), name='Peen-set-1_1')
+mdb.models['Script'].parts['Peen'].Set(faces=
+    mdb.models['Script'].parts['Peen'].faces.getSequenceFromMask(mask=(
+    '[#400 ]', ), ), name='Peen-set-1_2')
+mdb.models['Script'].parts['Peen'].Set(faces=
+    mdb.models['Script'].parts['Peen'].faces.getSequenceFromMask(mask=(
+    '[#20 ]', ), ), name='Peen-set-1_3')
+mdb.models['Script'].parts['Peen'].Set(faces=
+    mdb.models['Script'].parts['Peen'].faces.getSequenceFromMask(mask=('[#4 ]', 
+    ), ), name='Peen-set-1_4')
+mdb.models['Script'].parts['Peen'].Set(faces=
+    mdb.models['Script'].parts['Peen'].faces.getSequenceFromMask(mask=(
+    '[#4000 ]', ), ), name='Peen-set-2_0')
+mdb.models['Script'].parts['Peen'].Set(faces=
+    mdb.models['Script'].parts['Peen'].faces.getSequenceFromMask(mask=(
+    '[#200000 ]', ), ), name='Peen-set-2_1')
+mdb.models['Script'].parts['Peen'].Set(faces=
+    mdb.models['Script'].parts['Peen'].faces.getSequenceFromMask(mask=(
+    '[#10000 ]', ), ), name='Peen-set-2_2')
+mdb.models['Script'].parts['Peen'].Set(faces=
+    mdb.models['Script'].parts['Peen'].faces.getSequenceFromMask(mask=(
+    '[#800 ]', ), ), name='Peen-set-2_3')
+mdb.models['Script'].parts['Peen'].Set(faces=
+    mdb.models['Script'].parts['Peen'].faces.getSequenceFromMask(mask=(
+    '[#40 ]', ), ), name='Peen-set-2_4')
+mdb.models['Script'].parts['Peen'].Set(faces=
+    mdb.models['Script'].parts['Peen'].faces.getSequenceFromMask(mask=(
+    '[#100000 ]', ), ), name='Peen-set-3_0')
+mdb.models['Script'].parts['Peen'].Set(faces=
+    mdb.models['Script'].parts['Peen'].faces.getSequenceFromMask(mask=(
+    '[#1000000 ]', ), ), name='Peen-set-3_1')
+mdb.models['Script'].parts['Peen'].Set(faces=
+    mdb.models['Script'].parts['Peen'].faces.getSequenceFromMask(mask=(
+    '[#400000 ]', ), ), name='Peen-set-3_2')
+mdb.models['Script'].parts['Peen'].Set(faces=
+    mdb.models['Script'].parts['Peen'].faces.getSequenceFromMask(mask=(
+    '[#20000 ]', ), ), name='Peen-set-3_3')
+mdb.models['Script'].parts['Peen'].Set(faces=
+    mdb.models['Script'].parts['Peen'].faces.getSequenceFromMask(mask=(
+    '[#1000 ]', ), ), name='Peen-set-3_4')
+mdb.models['Script'].parts['Peen'].Set(faces=
+    mdb.models['Script'].parts['Peen'].faces.getSequenceFromMask(mask=(
+    '[#40000 ]', ), ), name='Peen-set-4_0')
+mdb.models['Script'].parts['Peen'].Set(faces=
+    mdb.models['Script'].parts['Peen'].faces.getSequenceFromMask(mask=(
+    '[#800000 ]', ), ), name='Peen-set-4_1')
+mdb.models['Script'].parts['Peen'].Set(faces=
+    mdb.models['Script'].parts['Peen'].faces.getSequenceFromMask(mask=(
+    '[#80000 ]', ), ), name='Peen-set-4_2')
+mdb.models['Script'].parts['Peen'].Set(faces=
+    mdb.models['Script'].parts['Peen'].faces.getSequenceFromMask(mask=(
+    '[#2000 ]', ), ), name='Peen-set-4_3')
+mdb.models['Script'].parts['Peen'].Set(faces=
+    mdb.models['Script'].parts['Peen'].faces.getSequenceFromMask(mask=(
+    '[#80 ]', ), ), name='Peen-set-4_4')
+mdb.models['Script'].parts['Peen'].surfaces.changeKey(fromName='Sheet-bottom', 
+    toName='Peen-bottom')
+mdb.models['Script'].parts['Peen'].surfaces.changeKey(fromName='Sheet-top', 
+    toName='Peen-top')
+mdb.models['Script'].parts['Peen'].sets.changeKey(fromName='Sheet-all', toName=
+    'Peen-all')
+mdb.models['Script'].parts['Peen'].SectionAssignment(offset=-5.0, offsetField=
+    '', offsetType=MIDDLE_SURFACE, region=
+    mdb.models['Script'].parts['Peen'].sets['Peen-set-1_3'], sectionName=
+    'Peen-005', thicknessAssignment=FROM_SECTION)
+mdb.models['Script'].parts['Peen'].SectionAssignment(offset=-5.0, offsetField=
+    '', offsetType=MIDDLE_SURFACE, region=
+    mdb.models['Script'].parts['Peen'].sets['Peen-set-4_3'], sectionName=
+    'Peen-01', thicknessAssignment=FROM_SECTION)
+mdb.models['Script'].parts['Peen'].SectionAssignment(offset=-5.0, offsetField=
+    '', offsetType=MIDDLE_SURFACE, region=
+    mdb.models['Script'].parts['Peen'].sets['Peen-set-3_2'], sectionName=
+    'Peen-015', thicknessAssignment=FROM_SECTION)
+mdb.models['Script'].parts['Peen'].SectionAssignment(offset=-5.0, offsetField=
+    '', offsetType=MIDDLE_SURFACE, region=
+    mdb.models['Script'].parts['Peen'].sets['Peen-set-0_4'], sectionName=
+    'Peen-02', thicknessAssignment=FROM_SECTION)
+mdb.models['Script'].parts['Peen'].SectionAssignment(offset=-5.0, offsetField=
+    '', offsetType=MIDDLE_SURFACE, region=
+    mdb.models['Script'].parts['Peen'].sets['Peen-set-1_2'], sectionName=
+    'Peen-005', thicknessAssignment=FROM_SECTION)
+mdb.models['Script'].parts['Peen'].SectionAssignment(offset=-5.0, offsetField=
+    '', offsetType=MIDDLE_SURFACE, region=
+    mdb.models['Script'].parts['Peen'].sets['Peen-set-2_0'], sectionName=
+    'Peen-01', thicknessAssignment=FROM_SECTION)
+mdb.models['Script'].parts['Peen'].SectionAssignment(offset=-5.0, offsetField=
+    '', offsetType=MIDDLE_SURFACE, region=
+    mdb.models['Script'].parts['Peen'].sets['Peen-set-0_1'], sectionName=
+    'Peen-015', thicknessAssignment=FROM_SECTION)
+mdb.models['Script'].parts['Peen'].SectionAssignment(offset=-5.0, offsetField=
+    '', offsetType=MIDDLE_SURFACE, region=
+    mdb.models['Script'].parts['Peen'].sets['Peen-set-4_0'], sectionName=
+    'Peen-02', thicknessAssignment=FROM_SECTION)
+mdb.models['Script'].parts['Peen'].SectionAssignment(offset=-5.0, offsetField=
+    '', offsetType=MIDDLE_SURFACE, region=
+    mdb.models['Script'].parts['Peen'].sets['Peen-set-3_0'], sectionName=
+    'Peen-005', thicknessAssignment=FROM_SECTION)
+mdb.models['Script'].parts['Peen'].SectionAssignment(offset=-5.0, offsetField=
+    '', offsetType=MIDDLE_SURFACE, region=
+    mdb.models['Script'].parts['Peen'].sets['Peen-set-3_3'], sectionName=
+    'Peen-01', thicknessAssignment=FROM_SECTION)
+mdb.models['Script'].parts['Peen'].SectionAssignment(offset=-5.0, offsetField=
+    '', offsetType=MIDDLE_SURFACE, region=
+    mdb.models['Script'].parts['Peen'].sets['Peen-set-1_4'], sectionName=
+    'Peen-015', thicknessAssignment=FROM_SECTION)
+mdb.models['Script'].parts['Peen'].SectionAssignment(offset=-5.0, offsetField=
+    '', offsetType=MIDDLE_SURFACE, region=
+    mdb.models['Script'].parts['Peen'].sets['Peen-set-2_3'], sectionName=
+    'Peen-02', thicknessAssignment=FROM_SECTION)
+mdb.models['Script'].parts['Peen'].SectionAssignment(offset=-5.0, offsetField=
+    '', offsetType=MIDDLE_SURFACE, region=
+    mdb.models['Script'].parts['Peen'].sets['Peen-set-3_4'], sectionName=
+    'Peen-005', thicknessAssignment=FROM_SECTION)
+mdb.models['Script'].parts['Peen'].SectionAssignment(offset=-5.0, offsetField=
+    '', offsetType=MIDDLE_SURFACE, region=
+    mdb.models['Script'].parts['Peen'].sets['Peen-set-0_3'], sectionName=
+    'Peen-01', thicknessAssignment=FROM_SECTION)
+mdb.models['Script'].parts['Peen'].SectionAssignment(offset=-5.0, offsetField=
+    '', offsetType=MIDDLE_SURFACE, region=
+    mdb.models['Script'].parts['Peen'].sets['Peen-set-0_0'], sectionName=
+    'Peen-015', thicknessAssignment=FROM_SECTION)
+mdb.models['Script'].parts['Peen'].SectionAssignment(offset=-5.0, offsetField=
+    '', offsetType=MIDDLE_SURFACE, region=
+    mdb.models['Script'].parts['Peen'].sets['Peen-set-2_2'], sectionName=
+    'Peen-02', thicknessAssignment=FROM_SECTION)
+mdb.models['Script'].parts['Peen'].SectionAssignment(offset=-5.0, offsetField=
+    '', offsetType=MIDDLE_SURFACE, region=
+    mdb.models['Script'].parts['Peen'].sets['Peen-set-1_0'], sectionName=
+    'Peen-005', thicknessAssignment=FROM_SECTION)
+mdb.models['Script'].parts['Peen'].SectionAssignment(offset=-5.0, offsetField=
+    '', offsetType=MIDDLE_SURFACE, region=
+    mdb.models['Script'].parts['Peen'].sets['Peen-set-4_1'], sectionName=
+    'Peen-01', thicknessAssignment=FROM_SECTION)
+mdb.models['Script'].parts['Peen'].SectionAssignment(offset=-5.0, offsetField=
+    '', offsetType=MIDDLE_SURFACE, region=
+    mdb.models['Script'].parts['Peen'].sets['Peen-set-2_1'], sectionName=
+    'Peen-015', thicknessAssignment=FROM_SECTION)
+mdb.models['Script'].parts['Peen'].SectionAssignment(offset=-5.0, offsetField=
+    '', offsetType=MIDDLE_SURFACE, region=
+    mdb.models['Script'].parts['Peen'].sets['Peen-set-0_2'], sectionName=
+    'Peen-02', thicknessAssignment=FROM_SECTION)
+mdb.models['Script'].parts['Peen'].SectionAssignment(offset=-5.0, offsetField=
+    '', offsetType=MIDDLE_SURFACE, region=
+    mdb.models['Script'].parts['Peen'].sets['Peen-set-1_1'], sectionName=
+    'Peen-005', thicknessAssignment=FROM_SECTION)
+mdb.models['Script'].parts['Peen'].SectionAssignment(offset=-5.0, offsetField=
+    '', offsetType=MIDDLE_SURFACE, region=
+    mdb.models['Script'].parts['Peen'].sets['Peen-set-2_4'], sectionName=
+    'Peen-01', thicknessAssignment=FROM_SECTION)
+mdb.models['Script'].parts['Peen'].SectionAssignment(offset=-5.0, offsetField=
+    '', offsetType=MIDDLE_SURFACE, region=
+    mdb.models['Script'].parts['Peen'].sets['Peen-set-4_4'], sectionName=
+    'Peen-015', thicknessAssignment=FROM_SECTION)
+mdb.models['Script'].parts['Peen'].SectionAssignment(offset=-5.0, offsetField=
+    '', offsetType=MIDDLE_SURFACE, region=
+    mdb.models['Script'].parts['Peen'].sets['Peen-set-4_2'], sectionName=
+    'Peen-02', thicknessAssignment=FROM_SECTION)
+mdb.models['Script'].parts['Peen'].SectionAssignment(offset=-5.0, offsetField=
+    '', offsetType=MIDDLE_SURFACE, region=
+    mdb.models['Script'].parts['Peen'].sets['Peen-set-3_1'], sectionName=
+    'Peen-005', thicknessAssignment=FROM_SECTION)
+mdb.models['Script'].rootAssembly.Instance(dependent=ON, name='Sheet-1', part=
+    mdb.models['Script'].parts['Sheet'])
+mdb.models['Script'].rootAssembly.Instance(dependent=ON, name='Peen-1', part=
+    mdb.models['Script'].parts['Peen'])
+mdb.models['Script'].Tie(adjust=ON, main=
+    mdb.models['Script'].rootAssembly.instances['Sheet-1'].surfaces['Sheet-top']
+    , name='Constraint-1', positionToleranceMethod=COMPUTED, secondary=
+    mdb.models['Script'].rootAssembly.instances['Peen-1'].surfaces['Peen-bottom']
+    , thickness=ON, tieRotations=ON)
+mdb.models['Script'].DisplacementBC(createStepName='Initial', name='BC-Fixed', 
+    region=Region(
+    vertices=mdb.models['Script'].rootAssembly.instances['Sheet-1'].vertices.getSequenceFromMask(
+    mask=('[#1 ]', ), )), u1=SET, u2=SET, u3=SET)
+mdb.models['Script'].DisplacementBC(createStepName='Initial', name=
+    'BC-Roll-TopLeft', region=Region(
+    vertices=mdb.models['Script'].rootAssembly.instances['Sheet-1'].vertices.getSequenceFromMask(
+    mask=('[#8 ]', ), )), u1=SET, u2=UNSET, u3=UNSET)
+mdb.models['Script'].DisplacementBC(createStepName='Initial', name=
+    'BC-Roll-BottomRight', region=Region(
+    vertices=mdb.models['Script'].rootAssembly.instances['Sheet-1'].vertices.getSequenceFromMask(
+    mask=('[#2 ]', ), )), u1=UNSET, u2=SET, ur3=UNSET)
+mdb.models['Script'].StaticStep(name='Step-1', previous='Initial')
+mdb.models['Script'].Temperature(createStepName='Step-1', 
+    crossSectionDistribution=CONSTANT_THROUGH_THICKNESS, distributionType=
+    UNIFORM, magnitudes=(1.0, ), name='Predefined Field-1', region=
+    mdb.models['Script'].rootAssembly.instances['Peen-1'].sets['Peen-all'])
+mdb.models['Script'].parts['Peen'].seedPart(deviationFactor=0.1, minSizeFactor=
+    0.1, size=0.02)
+mdb.models['Script'].parts['Peen'].generateMesh()
+mdb.models['Script'].parts['Sheet'].seedPart(deviationFactor=0.1, 
+    minSizeFactor=0.1, size=0.02)
+mdb.models['Script'].parts['Sheet'].generateMesh()
+# Save by onestr on 2024_11_07-17.00.34; build 2022 2021_09_15-10.57.30 176069
