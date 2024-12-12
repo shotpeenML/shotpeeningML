@@ -607,7 +607,7 @@ def train_save_gui(data_path):
 
 
 ### Evaluation_GUI part
-def create_test_loader(test_data_path, load_files=("checkerboard", "displacements"), batch_size=15):
+def create_test_loader(test_data_path, load_files=("checkerboard", "displacements"), batch_size=1):
     """
     Create a DataLoader using the entire dataset from test_data_path.
 
@@ -633,14 +633,86 @@ def create_test_loader(test_data_path, load_files=("checkerboard", "displacement
 
     return test_loader
 
-def load_and_evaluate_model(model_path, test_data_path):
+
+def evaluate_model_gui(model, test_loader, criterion, pred_save_dir):
+    """
+    Evaluate the model on the test set and save predictions.
+
+    Args:
+        model (nn.Module): The trained model.
+        test_loader (DataLoader): DataLoader for test data.
+        criterion (nn.Module): Loss function.
+        pred_save_dir (str): Directory to save the predicted displacements.
+
+    Returns:
+        float: Overall Mean Squared Error (MSE) on the test set.
+    """
+    model.eval()
+    total_mse = 0.0  # Initialize total MSE for all batches
+    total_smape = 0.0  # Initialize total sMAPE for all batches
+
+    batch_count = 0
+
+    os.makedirs(pred_save_dir, exist_ok=True)  # Ensure the directory exists
+
+    with torch.no_grad():
+        for batch_idx, (checkerboard, displacement) in enumerate(test_loader):
+            # print(f"Processing batch {batch_idx}, Checkerboard size: {checkerboard.size()}")
+
+            # Forward pass to get predictions
+            predicted_displacements = model(checkerboard)
+
+            # Save predictions to individual files
+            batch_dir = os.path.join(pred_save_dir, f"Simulation_{batch_idx}")
+            os.makedirs(batch_dir, exist_ok=True)
+
+            # Save as .npy
+            npy_path = os.path.join(batch_dir, "pred_displacements.npy")
+            np.save(npy_path, predicted_displacements.cpu().numpy())
+
+
+            # Save as CSV
+            flat_predictions = predicted_displacements.cpu().numpy().reshape(-1, 3)
+            csv_path = os.path.join(batch_dir, "pred_displacements.csv")
+            np.savetxt(csv_path, flat_predictions, delimiter=",")
+
+
+            # Calculate batch MSE
+            batch_mse = criterion(predicted_displacements, displacement).item()  # Compute MSE loss for the batch
+            total_mse += batch_mse
+
+            # Calculate batch sMAPE
+            batch_smape = smape(displacement, predicted_displacements).item()  # sMAPE
+            total_smape += batch_smape
+
+            batch_count += 1
+
+            # Display results for the first batch
+            if batch_count == 1:
+                print("\nCheckerboard Input:")
+                print(checkerboard[0][0].numpy())  # Show first checkerboard in the batch
+                print("\nPredicted Displacement (First 5 Nodes):")
+                print(predicted_displacements[0][:5].numpy())  # Predicted displacement for first 5 nodes
+                print("\nGround Truth Displacement (First 5 Nodes):")
+                print(displacement[0][:5].numpy())  # Ground truth displacement for first 5 nodes
+
+    # Calculate and print overall MSE
+    overall_mse = total_mse / batch_count
+    overall_smape = total_smape / batch_count
+
+    print(f"Overall Mean Squared Error (MSE) on Test Set: {overall_mse:.10f}")
+    print(f"Overall Symmetric Mean Absolute Percentage Error (sMAPE) on Test Set: {overall_smape * 100:.10f}%")
+    return overall_mse
+
+
+def load_and_evaluate_model_gui(model_path, test_data_path, pred_save_dir):
     # Load the model
     model = torch.load(model_path)
     model.eval()
     print("Model loaded successfully.")
 
     # Use the entire test data as the DataLoader
-    test_loader = create_test_loader(test_data_path, batch_size=15)
+    test_loader = create_test_loader(test_data_path, batch_size=1)
     print("Test data loaded successfully.")
 
     # Define loss function
@@ -648,35 +720,12 @@ def load_and_evaluate_model(model_path, test_data_path):
 
     # Evaluate the model
     print("Evaluating the model...")
-    evaluate_model(
+    evaluate_model_gui(
         model=model,
         test_loader=test_loader,
-        criterion=criterion
+        criterion=criterion,
+        pred_save_dir=pred_save_dir
     )
-    print("Evaluation completed.")
+    print("Evaluation completed, Predicted Displacements saved.")
 
 
-def load_and_evaluate_model(model_path,test_data_path):
-    # Load the model
-    model = torch.load(model_path)
-    model.eval()
-    print("Model loaded successfully.")
-
-    # Load the test data
-    _, _, test_loader, _ = create_data_loaders(
-        base_folder=test_data_path,
-        load_files=("checkerboard", "displacements")
-    )
-    print("Test data loaded successfully.")
-
-    # Define loss function
-    criterion = nn.MSELoss()
-
-    # Evaluate the model
-    print("Evaluating the model...")
-    evaluate_model(
-        model=model,
-        test_loader=test_loader,
-        criterion=criterion
-    )
-    print("Evaluation completed.")
