@@ -152,7 +152,7 @@ class App:
                                                 columnspan=2,
                                                   pady=20)
         except FileNotFoundError as e:
-            raise f"Could not locate Bullet bill logo {e}"
+            raise FileNotFoundError(f"Could not locate Bullet bill logo {e}")
 
         tk.Label(main_frame,
                   text="Main Menu",
