@@ -123,6 +123,7 @@ class App:
         self.root = root_tk
         self.root.title("Model GUI")
         self.root.geometry("800x600")
+        self.window_size = "800x600"
         self.test_train_data_path = ""
         self.parent_process = None  # Initialize the attribute
         self.main_menu()
@@ -202,7 +203,7 @@ class App:
         """
         dialog = tk.Toplevel(self.root)
         dialog.title("Train Model")
-        dialog.geometry("900x500")
+        dialog.geometry(self.window_size)
 
         # Training Layout
         frame = tk.Frame(dialog, padx=20, pady=20)
@@ -266,7 +267,7 @@ class App:
         """
         dialog = tk.Toplevel(self.root)
         dialog.title("Load Model")
-        dialog.geometry("900x500")
+        dialog.geometry(self.window_size)
 
         # Load Model Layout
         frame = tk.Frame(dialog, padx=20, pady=20)
