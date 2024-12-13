@@ -28,7 +28,9 @@ from torch.utils.data import Dataset, DataLoader, random_split
 from pathlib import Path
 
 # 1. Load All Numpy Files Function
-def load_all_npy_files(base_folder, load_files=("checkerboard", "displacements"), skip_missing=True):
+def load_all_npy_files(base_folder,
+                        load_files=("checkerboard", "displacements"),
+                          skip_missing=True):
     """
     Load specified .npy files from multiple simulation folders.
 
@@ -564,7 +566,7 @@ if __name__ == "__main__":
 def train_save_gui(data_path):
     # Create DataLoaders
     print("Loading data...")
-    train_loader, val_loader, test_loader, loaded_data1 = create_data_loaders(
+    train_loader, val_loader, _, _ = create_data_loaders(
         base_folder=data_path,
         load_files=("checkerboard", "displacements")
     )

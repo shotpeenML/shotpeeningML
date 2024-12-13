@@ -66,10 +66,11 @@ from PIL import Image, ImageTk
 # Append src folder to path such that the called python files can be called.
 sys.path.append(os.path.join(os.path.dirname(__file__), 'src', 'peen-ml'))
 # Deviating from PEP8 to make sure that this script can call the backend
-from model import train_model, create_data_loaders, create_model #, evaluate_model
-from model import train_save_gui
-from data_viz import visualize_checkerboard #, compute_deformed_mesh, visualize_mesh
-# from data_viz import visualize_stress_field
+from model import train_model, create_data_loaders, create_model # pylint: disable=wrong-import-position #, evaluate_model
+from model import train_save_gui # pylint: disable=wrong-import-position
+from model import load_and_evaluate_model_gui # pylint: disable=wrong-import-position
+from data_viz import visualize_checkerboard, compute_deformed_mesh, visualize_mesh # pylint: disable=wrong-import-position
+from data_viz import visualize_stress_field, visualize_deformation # pylint: disable=wrong-import-position
 
 
 def check_install(package_id: str):
@@ -201,7 +202,7 @@ class App:
         """
         dialog = tk.Toplevel(self.root)
         dialog.title("Train Model")
-        dialog.geometry("1000x700")
+        dialog.geometry("900x500")
 
         # Training Layout
         frame = tk.Frame(dialog, padx=20, pady=20)
@@ -292,19 +293,19 @@ class App:
                                                                column=2,
                                                                  pady=5)
 
-        # STEP File Selection
+        # Intensity Checkerboard File Selection
         tk.Label(frame,
                   text="Peen Intensity Folder",
                     font=("Arial", 12)).grid(row=1, column=0, sticky="e",
                                               pady=10, padx=10)
-        checkerboard_file_var = tk.StringVar()
+        checkerboard_folder_var = tk.StringVar()
         tk.Entry(frame,
-                  textvariable=checkerboard_file_var,
+                  textvariable=checkerboard_folder_var,
                     width=50).grid(row=1, column=1, padx=10, pady=5)
         tk.Button(frame,
                    text="Browse",
                      command=lambda:
-                       self.browse_directory(checkerboard_file_var)).grid(row=1,
+                       self.browse_directory(checkerboard_folder_var)).grid(row=1,
                                                             column=2,
                                                               pady=5)
 
@@ -326,15 +327,26 @@ class App:
         tk.Button(frame,
                    text="Input Peen Intensity Preview",
                      command=lambda:
-                       self.preview_file(checkerboard_file_var.get()),
+                       self.preview_file(checkerboard_folder_var.get()),
                          width=25).grid(row=3,
                              column=0,
                                pady=20,
                                    sticky="n")
         tk.Button(frame,
+                   text="Evaluate Model",
+                     command=lambda:
+                       load_and_evaluate_model_gui(model_file_var.get(),
+                                              checkerboard_folder_var.get(),
+                                              output_path_var.get()),
+                         width=25).grid(row=3,
+                             column=1,
+                               pady=20,
+                                   sticky="n")
+        tk.Button(frame,
                    text="Predicted Deformation Preview",
                      command=lambda:
-                       self.preview_file(checkerboard_file_var.get()),
+                       self.preview_deformation(checkerboard_folder_var.get(),
+                                                output_path_var.get()),
                          width=25).grid(row=3,
                              column=2,
                                pady=20,
@@ -404,7 +416,7 @@ class App:
             thread.start()
         except RuntimeError as e:
             messagebox.showerror("Error", f"Threading error: {e}")
-        except Exception as e:
+        except Exception as e: # pylint: disable=broad-except
             # Fail safe, deviation from PEP8
             messagebox.showerror("Error", f"Failed to start the preview thread: {e}")
 
@@ -424,6 +436,69 @@ class App:
         # stdout, stderr = process.communicate()
 
         visualize_checkerboard(geometry_folder_path)
+
+    def preview_deformation(self, test_folder_path, deformation_folder_path):
+        """
+          Move needed files to simulated folder and preview them.
+        """
+        try:
+            node_coords_path = os.path.join(test_folder_path, 'node_coords.npy')
+            node_labels_path = os.path.join(test_folder_path, 'node_labels.npy')
+            # displacements_original_path = os.path.join(test_folder_path, 'displacements.npy')
+            disp_node_labels_path = os.path.join(test_folder_path, 'disp_node_labels.npy')
+        except Exception as e: # pylint: disable=broad-except
+            messagebox.showerror("Error", f"One or more files are missing{e}")
+        shutil.copy2(node_coords_path, deformation_folder_path)
+        shutil.copy2(node_labels_path, deformation_folder_path)
+        shutil.copy2(disp_node_labels_path, deformation_folder_path)
+        scale_factor = 1
+
+        # check if there was a newly processed displacements.npy file
+        if self.check_file_in_folder(deformation_folder_path, 'displacements.npy'):
+            print("Step 1: Visualizing Checkerboard Pattern...")
+            visualize_checkerboard(deformation_folder_path)
+
+            print("Step 2: Computing Deformed Mesh...")
+            node_coords, deformed_coords, element_nodes = compute_deformed_mesh(
+                deformation_folder_path, scale_factor
+            )
+
+            # Check if any of the required outputs are None
+            if any(obj is None for obj in [node_coords, deformed_coords, element_nodes]):
+                print("Error in computing deformed mesh. Exiting.")
+                return
+
+            print("Step 3: Visualizing Mesh (Undeformed and Deformed)...")
+            visualize_mesh(node_coords, deformed_coords, element_nodes)
+
+            print("Step 4: Visualizing Stress Field on Deformed Mesh...")
+            visualize_stress_field(deformation_folder_path,
+                                    deformed_coords,
+                                      element_nodes)
+
+            print("Step 5: Visualizing Deformation Magnitude on Deformed Mesh...")
+            aligned_displacements = deformed_coords - node_coords
+            visualize_deformation(deformation_folder_path,
+                                  deformed_coords,
+                                    element_nodes,
+                                      aligned_displacements)
+        else:
+            messagebox.showerror("Error",
+                                  "Please click evaluate first, no displacement file seen")
+
+    def check_file_in_folder(self, folder_path, file_name):
+        """Checks if a file exists in a given folder.
+
+        Args:
+            folder_path: The path to the folder.
+            file_name: The name of the file to check for.
+
+        Returns:
+            True if the file exists, False otherwise.
+        """
+
+        file_path = os.path.join(folder_path, file_name)
+        return os.path.exists(file_path)
 
     def train_model(self, data_folder):
         """
@@ -471,7 +546,16 @@ class App:
         log_widget.insert(tk.END, "Training completed!\n")
         log_widget.see(tk.END)
         log_widget.config(state='disabled')
+
     def num_of_simulations(self, folder_path):
+        """
+        Function used to find the number of folders containing simulations.
+        Args
+          - folder_path (String): The path containing the simulation folders.
+        
+        Returns
+          - len(simulation_folders) (Int): Number of simulations in the folder.
+        """
         simulation_folders = [
               os.path.join(folder_path, folder)
               for folder in os.listdir(folder_path)

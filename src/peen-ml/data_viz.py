@@ -166,7 +166,7 @@ def visualize_mesh(node_coords, deformed_coords, element_nodes):
         undeformed_lines = create_mesh_lines(node_coords, element_nodes)
         deformed_lines = create_mesh_lines(deformed_coords, element_nodes)
 
-        fig, ax = plt.subplots(figsize=(10, 10))
+        _, ax = plt.subplots(figsize=(10, 10))
         lc_undeformed = mc.LineCollection(undeformed_lines, colors='gray', linewidths=0.5)
         lc_deformed = mc.LineCollection(deformed_lines, colors='blue', linewidths=0.5)
         ax.add_collection(lc_undeformed)
@@ -212,7 +212,7 @@ def visualize_stress_field(simulation_folder, deformed_coords, element_nodes):
             edgecolors='k',
             linewidths=0.5
         )
-        fig, ax = plt.subplots(figsize=(10, 10))
+        _, ax = plt.subplots(figsize=(10, 10))
         ax.add_collection(collection)
         ax.autoscale_view()
         ax.set_aspect('equal')
@@ -225,7 +225,7 @@ def visualize_stress_field(simulation_folder, deformed_coords, element_nodes):
         print(f"Error visualizing stress field: {e}")
 
 
-def visualize_deformation(simulation_folder, deformed_coords, element_nodes, aligned_displacements):
+def visualize_deformation(_, deformed_coords, element_nodes, aligned_displacements):
     """Visualize the deformation magnitude on the deformed mesh."""
     try:
         deformation_magnitude = np.linalg.norm(aligned_displacements, axis=1)
@@ -246,7 +246,7 @@ def visualize_deformation(simulation_folder, deformed_coords, element_nodes, ali
             linewidths=0.5
         )
 
-        fig, ax = plt.subplots(figsize=(10, 10))
+        _, ax = plt.subplots(figsize=(10, 10))
         ax.add_collection(collection_def)
         ax.autoscale_view()
         ax.set_aspect('equal')
