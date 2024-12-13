@@ -19,13 +19,14 @@ Date:
 """
 
 import os
-import numpy as np
+from pathlib import Path
 
+import numpy as np
 import torch
 from torch import nn, optim
-import matplotlib.pyplot as plt
 from torch.utils.data import Dataset, DataLoader, random_split
-from pathlib import Path
+import matplotlib.pyplot as plt
+
 
 # 1. Load All Numpy Files Function
 def load_all_npy_files(base_folder,
@@ -517,7 +518,7 @@ def main():
 
     # Create DataLoaders
     print("Loading data...")
-    train_loader, val_loader, test_loader, loaded_data1 = create_data_loaders(
+    train_loader, val_loader, test_loader, _ = create_data_loaders(
         base_folder=data_path1,
         load_files=("checkerboard", "displacements")
     )
@@ -729,5 +730,3 @@ def load_and_evaluate_model_gui(model_path, test_data_path, pred_save_dir):
         pred_save_dir=pred_save_dir
     )
     print("Evaluation completed, Predicted Displacements saved.")
-
-
