@@ -258,22 +258,19 @@ def visualize_deformation(_, deformed_coords, element_nodes, aligned_displacemen
     except Exception as e:  # pylint: disable=broad-except
         print(f"Error visualizing deformation: {e}")
 
-
-def main():
-    """Main function to execute all visualization steps."""
-    # Path to the simulation folder
-    #simulation_folder = (r'\tests\simulation_0')
-    simulation_folder = os.path.join(os.getcwd(), 'tests', 'simulation_0')
-
-    # Deformation scale (adjust as needed)
-    scale_factor = 1
-
+def visualize_all(folder_path, scale_factor):
+    """
+    This function runs through the whole visulization workflow
+    Args:
+        folder_path (String): The folder containing the files to visualize
+        scale_factor (float): The factor to scale the deformation to visualize  
+    """
     print("Step 1: Visualizing Checkerboard Pattern...")
-    visualize_checkerboard(simulation_folder)
+    visualize_checkerboard(folder_path)
 
     print("Step 2: Computing Deformed Mesh...")
     node_coords, deformed_coords, element_nodes = compute_deformed_mesh(
-        simulation_folder, scale_factor
+        folder_path, scale_factor
     )
 
     # Check if any of the required outputs are None
@@ -285,12 +282,27 @@ def main():
     visualize_mesh(node_coords, deformed_coords, element_nodes)
 
     print("Step 4: Visualizing Stress Field on Deformed Mesh...")
-    visualize_stress_field(simulation_folder, deformed_coords, element_nodes)
+    visualize_stress_field(folder_path,
+                            deformed_coords,
+                                element_nodes)
 
     print("Step 5: Visualizing Deformation Magnitude on Deformed Mesh...")
     aligned_displacements = deformed_coords - node_coords
-    visualize_deformation(simulation_folder, deformed_coords, element_nodes, aligned_displacements)
+    visualize_deformation(folder_path,
+                            deformed_coords,
+                            element_nodes,
+                                aligned_displacements)
 
+
+def main():
+    """Main function to execute all visualization steps."""
+    # Path to the simulation folder
+    #simulation_folder = (r'\tests\simulation_0')
+    simulation_folder = os.path.join(os.getcwd(), 'tests', 'simulation_0')
+
+    # Deformation scale (adjust as needed)
+    scale_factor = 1
+    visualize_all(simulation_folder, scale_factor)
 
 if __name__ == "__main__":
     main()

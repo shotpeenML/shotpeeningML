@@ -69,9 +69,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), 'src', 'peen-ml'))
 from model import train_model, create_data_loaders, create_model # pylint: disable=wrong-import-position #, evaluate_model
 from model import train_save_gui # pylint: disable=wrong-import-position
 from model import load_and_evaluate_model_gui # pylint: disable=wrong-import-position
-from data_viz import visualize_checkerboard, compute_deformed_mesh, visualize_mesh # pylint: disable=wrong-import-position
-from data_viz import visualize_stress_field, visualize_deformation # pylint: disable=wrong-import-position
-
+from data_viz import visualize_checkerboard, visualize_all # pylint: disable=wrong-import-position
 
 def check_install(package_id: str):
     """
@@ -456,33 +454,8 @@ class App:
 
         # check if there was a newly processed displacements.npy file
         if self.check_file_in_folder(deformation_folder_path, 'displacements.npy'):
-            print("Step 1: Visualizing Checkerboard Pattern...")
-            visualize_checkerboard(deformation_folder_path)
+            visualize_all(deformation_folder_path, scale_factor)
 
-            print("Step 2: Computing Deformed Mesh...")
-            node_coords, deformed_coords, element_nodes = compute_deformed_mesh(
-                deformation_folder_path, scale_factor
-            )
-
-            # Check if any of the required outputs are None
-            if any(obj is None for obj in [node_coords, deformed_coords, element_nodes]):
-                print("Error in computing deformed mesh. Exiting.")
-                return
-
-            print("Step 3: Visualizing Mesh (Undeformed and Deformed)...")
-            visualize_mesh(node_coords, deformed_coords, element_nodes)
-
-            print("Step 4: Visualizing Stress Field on Deformed Mesh...")
-            visualize_stress_field(deformation_folder_path,
-                                    deformed_coords,
-                                      element_nodes)
-
-            print("Step 5: Visualizing Deformation Magnitude on Deformed Mesh...")
-            aligned_displacements = deformed_coords - node_coords
-            visualize_deformation(deformation_folder_path,
-                                  deformed_coords,
-                                    element_nodes,
-                                      aligned_displacements)
         else:
             messagebox.showerror("Error",
                                   "Please click evaluate first, no displacement file seen")
