@@ -12,11 +12,7 @@ import pytest
 src_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../src/peen-ml'))
 sys.path.append(src_path)
 
-from model import (
-    load_all_npy_files,
-    CheckerboardDataset,
-    ChannelAttention,
-) # pylint: disable=wrong-import-position
+from model import (load_all_npy_files, CheckerboardDataset, ChannelAttention) # pylint: disable=wrong-import-position
 
 # Smoke Test
 def test_load_all_npy_files_smoke():

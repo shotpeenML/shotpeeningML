@@ -23,11 +23,11 @@ def app():
     return app_instance
 
 
-def test_smoke_app_initialization(app):
+def test_smoke_app_initialization(app): # pylint: disable=redefined-outer-name
     """Smoke test to check if the App initializes without crashing."""
     assert app is not None
 
-def test_train_model_directory_not_exists(app):
+def test_train_model_directory_not_exists(app): # pylint: disable=redefined-outer-name
     """One-shot test: Check if train_model correctly handles a non-existent directory."""
     non_existing_dir = "/tmp/non_existent_data_folder"
 
@@ -37,7 +37,7 @@ def test_train_model_directory_not_exists(app):
         mock_error.assert_called_once_with("Error",
                                             f"The folder path does not exist: {non_existing_dir}")
 
-def test_preview_file_directory_not_exists(app):
+def test_preview_file_directory_not_exists(app): # pylint: disable=redefined-outer-name
     """Edge test: Check if preview_file handles a non-existent directory."""
     non_existing_dir = "/tmp/non_existent_data_folder"
 
@@ -46,7 +46,7 @@ def test_preview_file_directory_not_exists(app):
         mock_error.assert_called_once_with("Error",
                                             f"The Folder path does not exist: {non_existing_dir}")
 
-def test_preview_file_directory_empty(app):
+def test_preview_file_directory_empty(app): # pylint: disable=redefined-outer-name
     """Edge test: Check if preview_file handles an empty directory."""
     empty_dir = "/tmp/empty_folder"
     os.makedirs(empty_dir, exist_ok=True)

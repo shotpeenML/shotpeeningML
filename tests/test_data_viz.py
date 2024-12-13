@@ -26,14 +26,14 @@ def create_simulation(tmpdir_factory):
     return folder
 
 # Smoke Test
-def test_load_data_smoke(create_simulation):
+def test_load_data_smoke(create_simulation): # pylint: disable=redefined-outer-name
     """Smoke test to verify load_data runs without errors."""
     file_path = os.path.join(create_simulation, 'checkerboard.npy')
     data = load_data(file_path)
     assert data is not None, "Smoke test failed: load_data returned None."
 
 # One-shot Tests
-def test_compute_deformed_mesh_correct_data(create_simulation):
+def test_compute_deformed_mesh_correct_data(create_simulation): # pylint: disable=redefined-outer-name
     """Test compute_deformed_mesh with correct data."""
     node_coords, deformed_coords, element_nodes = compute_deformed_mesh(create_simulation)
     assert node_coords is not None, "One-shot test failed: Node coordinates are None."
@@ -46,7 +46,7 @@ def test_load_data_invalid_file():
     assert data is None, "One-shot test failed: Invalid file should return None."
 
 # Edge Case Tests
-def test_compute_deformed_mesh_missing_file(create_simulation):
+def test_compute_deformed_mesh_missing_file(create_simulation): # pylint: disable=redefined-outer-name
     """Test compute_deformed_mesh when a required file is missing."""
     os.remove(os.path.join(create_simulation, 'node_coords.npy'))
     node_coords, _, _ = compute_deformed_mesh(create_simulation)
