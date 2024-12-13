@@ -26,7 +26,8 @@ jobs:
       run: echo "PYTHONPATH=$PYTHONPATH:$(pwd)/src/peen-ml" >> $GITHUB_ENV
 
     - name: Diable some warings
-      run: pylint --fail-under=9.5 \
+      run: |
+        pylint --fail-under=9.5 \
           --disable=C0301,C0114,C0116,C0103,R0914,R0913,R0915,R0902,R1725 \
           --ignore=src/peen_ml/dataset1_script.py,src/peen_ml/dataset2_script.py \
           $(git ls-files '*.py')
