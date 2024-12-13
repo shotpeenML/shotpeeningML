@@ -33,12 +33,23 @@ def test_load_data_smoke(create_simulation): # pylint: disable=redefined-outer-n
     assert data is not None, "Smoke test failed: load_data returned None."
 
 # One-shot Tests
-def test_compute_deformed_mesh_correct_data(create_simulation): # pylint: disable=redefined-outer-name
-    """Test compute_deformed_mesh with correct data."""
-    node_coords, deformed_coords, element_nodes = compute_deformed_mesh(create_simulation)
-    assert node_coords is not None, "One-shot test failed: Node coordinates are None."
-    assert deformed_coords is not None, "One-shot test failed: Deformed coordinates are None."
-    assert element_nodes is not None, "One-shot test failed: Element nodes are None."
+def test_compute_deformed_mesh_correct_data_with_simulation():
+    """Test compute_deformed_mesh with actual simulation data."""
+    simulation_folder = os.path.join(os.getcwd(), 'tests', 'simulation_0')
+    expected_node_coords = np.load(os.path.join(simulation_folder, 'node_coords.npy'))
+    expected_displacements = np.load(os.path.join(simulation_folder, 'displacements.npy'))
+    scale_factor = 1
+    expected_deformed_coords = expected_node_coords + scale_factor * expected_displacements
+    node_coords, deformed_coords, element_nodes = compute_deformed_mesh(simulation_folder, scale_factor)
+
+    # Debug specific indices for further clarity
+    for i in range(5):  # Compare first 5 entries
+        print(f"Index {i}: Computed = {deformed_coords[i]}, Expected = {expected_deformed_coords[i]}")
+    tolerance = 1
+    assert np.allclose(node_coords, expected_node_coords), "Node coordinates do not match expected values."
+    assert np.allclose(deformed_coords, expected_deformed_coords, atol=tolerance), "Deformed coordinates do not match expected values."
+    
+
 
 def test_load_data_invalid_file():
     """Test load_data with an invalid file."""
