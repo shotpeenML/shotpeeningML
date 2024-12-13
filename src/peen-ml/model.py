@@ -565,6 +565,24 @@ if __name__ == "__main__":
 
 
 def train_save_gui(data_path):
+    """
+    Trains a model for displacement prediction and saves the trained model.
+
+    Args:
+        data_path (str): Path to the base folder containing the training data.
+                         The folder should include subdirectories with data files
+                         ("checkerboard", "displacements").
+
+    Returns:
+        None: The function saves the trained model to a "saved_model" directory
+              within the provided data path.
+
+    Notes:
+        - The model is trained using Mean Squared Error (MSE) loss and Adam optimizer.
+        - The training process includes early stopping based on validation loss.
+        - Learning rate is adjusted every 2 epochs using a StepLR scheduler.
+        - This fiunciton is mainly designed for the ease use of gui funcitoning
+    """
     # Create DataLoaders
     print("Loading data...")
     train_loader, val_loader, _, _ = create_data_loaders(
@@ -709,6 +727,25 @@ def evaluate_model_gui(model, test_loader, criterion, pred_save_dir):
 
 
 def load_and_evaluate_model_gui(model_path, test_data_path, pred_save_dir):
+    """
+    Loads a pre-trained model, evaluates it on test data, and saves the predictions.
+
+    Args:
+        model_path (str): Path to the saved model file.
+        test_data_path (str): Path to the test dataset directory.
+        pred_save_dir (str): Directory to save the predicted displacements.
+
+    Returns:
+        None: The function evaluates the model and saves the predictions
+              to the specified directory.
+
+    Notes:
+        - The model is loaded in evaluation mode (`model.eval()`).
+        - Evaluation is performed using Mean Squared Error (MSE) as the loss function.
+        - Predictions are saved in the directory specified by `pred_save_dir`.
+        - This fiunciton is mainly designed for the ease use of gui funcitoning
+    """
+
     # Load the model
     model = torch.load(model_path)
     model.eval()
