@@ -24,21 +24,17 @@ jobs:
         python-version: ${{ matrix.python-version }}
     - name: Set PYTHONPATH
       run: echo "PYTHONPATH=$PYTHONPATH:$(pwd)/src/peen-ml" >> $GITHUB_ENV
-
-    - name: Diable some warings
-      run: |
-        pylint --fail-under=9.5 \
-          --disable=C0301,C0114,C0116,C0103,R0914,R0913,R0915,R0902,R1725 \
-          --ignore=src/peen_ml/dataset1_script.py,src/peen_ml/dataset2_script.py \
-          $(git ls-files '*.py')
-
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install pylint flake8 black torch matplotlib numpy pytest
+
     - name: Analyse the code with pylint
       run: |
-        pylint --disable=C0301,C0114,C0116 --ignore=src/peen-ml/dataset1_script.py,src/peen-ml/dataset2_script.py $(git ls-files '*.py')
+        pylint --fail-under=9.5 \
+           --disable=C0301,C0114,C0116,,C0103,R0914,R0913,R0915,R0902,R1725\
+           --ignore=src/peen-ml/dataset1_script.py,src/peen-ml/dataset2_script.py\
+            $(git ls-files '*.py')
     - name: Check PEP 8 compliance with flake8
       run: |
         flake8 --ignore=E501 $(git ls-files '*.py')
