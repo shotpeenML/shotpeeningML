@@ -314,8 +314,9 @@ def create_data_loaders(base_folder, load_files=("checkerboard", "displacements"
     train_size = int(0.7 * len(full_dataset))
     val_size = int(0.15 * len(full_dataset))
     test_size = len(full_dataset) - train_size - val_size
-    train_dataset, val_dataset, test_dataset = random_split(full_dataset, [train_size, val_size, test_size])
-
+    train_dataset, val_dataset, test_dataset = random_split(
+        full_dataset, [train_size, val_size, test_size]
+    )
     # Wrap subsets with normalization
     train_dataset = NormalizedDataset(train_dataset)
     val_dataset = NormalizedDataset(val_dataset)
@@ -426,8 +427,10 @@ def train_model(model, train_loader, val_loader, criterion, optimizer, scheduler
         fig.canvas.flush_events()
 
         # Print Losses
-        print(f"Epoch {epoch+1}/{epochs}, Training Loss: {train_loss:.10f}, Validation Loss: {val_loss:.10f}")
-
+        print(
+            f"Epoch {epoch+1}/{epochs}, Training Loss: {train_loss:.10f}, "
+            f"Validation Loss: {val_loss:.10f}"
+        )
     plt.ioff()
     plt.show()
     return train_losses, val_losses
@@ -497,7 +500,10 @@ def evaluate_model(model, test_loader, criterion):
     overall_smape = total_smape / batch_count
 
     print(f"Overall Mean Squared Error (MSE) on Test Set: {overall_mse:.10f}")
-    print(f"Overall Symmetric Mean Absolute Percentage Error (sMAPE) on Test Set: {overall_smape * 100:.10f}%")
+    print(
+        f"Overall Symmetric Mean Absolute Percentage Error (sMAPE) "
+        f"on Test Set: {overall_smape * 100:.10f}%"
+    )
     return overall_mse
 
 # 9. Main Function
