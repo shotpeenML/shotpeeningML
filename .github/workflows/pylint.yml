@@ -27,7 +27,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install pylint flake8 black
+        pip install pylint flake8 black torch matplotlib numpy pytest
     - name: Analyse the code with pylint
       run: |
         pylint --disable=C0301,C0114,C0116 --ignore=src/peen-ml/dataset1_script.py,src/peen-ml/dataset2_script.py $(git ls-files '*.py')
