@@ -16,7 +16,7 @@ from model import (
     load_all_npy_files,
     CheckerboardDataset,
     ChannelAttention,
-)
+) # pylint: disable=wrong-import-position
 
 # Smoke Test
 def test_load_all_npy_files_smoke():

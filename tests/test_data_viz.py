@@ -26,16 +26,16 @@ def create_simulation(tmpdir_factory):
     return folder
 
 # Smoke Test
-def test_load_data_smoke(folder):
+def test_load_data_smoke(create_simulation):
     """Smoke test to verify load_data runs without errors."""
-    file_path = os.path.join(folder, 'checkerboard.npy')
+    file_path = os.path.join(create_simulation, 'checkerboard.npy')
     data = load_data(file_path)
     assert data is not None, "Smoke test failed: load_data returned None."
 
 # One-shot Tests
-def test_compute_deformed_mesh_correct_data(folder):
+def test_compute_deformed_mesh_correct_data(create_simulation):
     """Test compute_deformed_mesh with correct data."""
-    node_coords, deformed_coords, element_nodes = compute_deformed_mesh(folder)
+    node_coords, deformed_coords, element_nodes = compute_deformed_mesh(create_simulation)
     assert node_coords is not None, "One-shot test failed: Node coordinates are None."
     assert deformed_coords is not None, "One-shot test failed: Deformed coordinates are None."
     assert element_nodes is not None, "One-shot test failed: Element nodes are None."
@@ -46,10 +46,10 @@ def test_load_data_invalid_file():
     assert data is None, "One-shot test failed: Invalid file should return None."
 
 # Edge Case Tests
-def test_compute_deformed_mesh_missing_file(folder):
+def test_compute_deformed_mesh_missing_file(create_simulation):
     """Test compute_deformed_mesh when a required file is missing."""
-    os.remove(os.path.join(folder, 'node_coords.npy'))
-    node_coords, _, _ = compute_deformed_mesh(folder)
+    os.remove(os.path.join(create_simulation, 'node_coords.npy'))
+    node_coords, _, _ = compute_deformed_mesh(create_simulation)
     assert node_coords is None, "Edge test failed: Should return None if a required file is missing"
 
 def test_load_data_empty_file(tmpdir):

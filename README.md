@@ -239,7 +239,8 @@ This project is licensed under the [MIT License](LICENSE).
 - [Harshavardhan Sameer Raje](mailto:harshr@uw.edu)  
   *Contributions:*  
   - Developed the graphical user interface (GUI) to ensure user-friendly interaction with the model.  
-  - Integrated the GUI with backend scripts for training and visualization.  
+  - Integrated the GUI with backend scripts for training and visualization.
+  - Linting and code coverage efforts  
 
 - [Jiachen Zhong](mailto:jczhong@uw.edu)  
   *Contributions:*  
