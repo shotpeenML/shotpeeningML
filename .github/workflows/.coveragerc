@@ -1,0 +1,8 @@
+[run]
+omit =
+    src\peen-ml\dataset1_script.py
+    src\peen-ml\dataset2_script.py
+    src\peen-ml\model_gui_test_case.py
+    src\peen-ml\model_notebook_v2.ipynb
+    src\peen-ml\model_notebook_v3.ipynb
+
