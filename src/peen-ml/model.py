@@ -29,15 +29,15 @@ import matplotlib.pyplot as plt
 
 
 # 1. Load All Numpy Files Function
-def load_all_npy_files(base_folder,
-                        load_files=("checkerboard", "displacements"),
-                          skip_missing=True):
+def load_all_npy_files(
+    base_folder, load_files=("checkerboard", "displacements"), skip_missing=True
+):
     """
     Load specified .npy files from multiple simulation folders.
 
     Args:
         base_folder (str): The base folder containing simulation subfolders.
-        load_files (tuple): Names of the files to load (default: ("checkerboard", "displacements")).
+        load_files (tuple): Names of the files to load (default: ("checkerboard", "displacements"))
         skip_missing (bool): If True, skip missing files; otherwise, raise an error.
 
     Returns:
@@ -46,8 +46,10 @@ def load_all_npy_files(base_folder,
     """
     # Find all folders matching the pattern "Simulation_\d+"
     simulation_folders = [
-        folder for folder in os.listdir(base_folder)
-        if os.path.isdir(os.path.join(base_folder, folder)) and folder.startswith("Simulation_")
+        folder
+        for folder in os.listdir(base_folder)
+        if os.path.isdir(os.path.join(base_folder, folder))
+        and folder.startswith("Simulation_")
     ]
 
     # Sort folders numerically by the index after "Simulation_"
@@ -65,13 +67,19 @@ def load_all_npy_files(base_folder,
             if os.path.exists(data_file_path):
                 # Load the file and append to the respective list
                 data_dict[file_name].append(np.load(data_file_path))
-                print(f"{file_name.capitalize()} from {simulation_folder} loaded successfully!")
+                print(
+                    f"{file_name.capitalize()} from {simulation_folder} loaded successfully!"
+                )
             else:
                 # Handle missing files
                 if skip_missing:
-                    print(f"{file_name.capitalize()} File not found in {simulation_folder}! Skipping...")
+                    print(
+                        f"{file_name.capitalize()} File not found in {simulation_folder}! Skipping..."
+                    )
                 else:
-                    raise FileNotFoundError(f"{file_name.capitalize()} File not found in {simulation_folder}!")
+                    raise FileNotFoundError(
+                        f"{file_name.capitalize()} File not found in {simulation_folder}!"
+                    )
 
     # Stack data from all simulations along a new axis
     stacked_data = {}
@@ -84,7 +92,10 @@ def load_all_npy_files(base_folder,
     print("All specified data loaded and stacked successfully!")
     return stacked_data
 
+
 # 2. Dataset Classes
+
+
 class CheckerboardDataset(Dataset):
     """
     A PyTorch Dataset class for checkerboard patterns and displacement data.
@@ -93,10 +104,11 @@ class CheckerboardDataset(Dataset):
         checkerboards (numpy array): Array of checkerboard patterns (batch_size, height, width).
         displacements (numpy array): Array of displacements (batch_size, num_nodes, 3).
     """
+
     def __init__(self, checkerboards, displacements):
         """
         Args:
-            checkerboards (numpy array): Array of checkerboard patterns (batch_size, height, width).
+            checkerboards (numpy array): Array of checkerboard patterns (batch_size, height, width)
             displacements (numpy array): Array of displacements (batch_size, num_nodes, 3).
         """
         self.checkerboards = checkerboards
@@ -120,21 +132,32 @@ class CheckerboardDataset(Dataset):
         displacement = self.displacements[idx]
 
         # Add a channel dimension to checkerboard (1 channel) to match with CNN expectations
-        checkerboard = torch.tensor(checkerboard, dtype=torch.float32).unsqueeze(0)  # (1, height, width)
+        checkerboard = torch.tensor(
+            # (1, height, width)
+            checkerboard,
+            dtype=torch.float32,
+        ).unsqueeze(0)
         displacement = torch.tensor(displacement, dtype=torch.float32)  # (num_nodes, 3)
 
         return checkerboard, displacement
 
+
 class NormalizedDataset(Dataset):
     """
-    A wrapper for normalizing datasets. Takes a base dataset and applies normalization to its features.
+    A wrapper for normalizing datasets. Takes a base dataset and applies normalization to
+      its features.
 
     Args:
         base_dataset (Dataset): The original dataset to normalize.
     """
+
     def __init__(self, base_dataset):
         self.base_dataset = base_dataset
-        self.checkerboards = torch.cat([data[0] for data in base_dataset], dim=0)  # Collect all checkerboards
+        self.checkerboards = torch.cat(
+            # Collect all checkerboards
+            [data[0] for data in base_dataset],
+            dim=0,
+        )
         self.min_val = self.checkerboards.min()
         self.max_val = self.checkerboards.max()
 
@@ -150,13 +173,19 @@ class NormalizedDataset(Dataset):
             idx (int): Index of the sample.
 
         Returns:
-            tuple: A tuple containing the normalized checkerboard tensor and the displacement tensor.
+            tuple: A tuple containing the normalized checkerboard tensor and
+              the displacement tensor.
         """
         checkerboard, displacement = self.base_dataset[idx]
-        normalized_checkerboard = (checkerboard - self.min_val) / (self.max_val - self.min_val)
+        normalized_checkerboard = (checkerboard - self.min_val) / (
+            self.max_val - self.min_val
+        )
         return normalized_checkerboard, displacement
 
+
 # 3. Attention Modules
+
+
 class ChannelAttention(nn.Module):
     """
     Channel Attention module for emphasizing relevant feature channels.
@@ -165,6 +194,7 @@ class ChannelAttention(nn.Module):
         channels (int): Number of input channels.
         reduction (int): Reduction ratio for channel compression (default: 16).
     """
+
     def __init__(self, channels, reduction=16):
         super(ChannelAttention, self).__init__()
         self.fc1 = nn.Conv2d(channels, channels // reduction, kernel_size=1)
@@ -182,15 +212,19 @@ class ChannelAttention(nn.Module):
             Tensor: Feature map after channel attention.
         """
         avg_pool = torch.mean(x, dim=(2, 3), keepdim=True)  # Global average pooling
-        max_pool = torch.max(torch.max(x, dim=2, keepdim=True).values, dim=3, keepdim=True).values  # Global max pooling
+        max_pool = torch.max(
+            torch.max(x, dim=2, keepdim=True).values, dim=3, keepdim=True
+        ).values  # Global max pooling
         scale = self.fc1(avg_pool) + self.fc1(max_pool)
         scale = self.fc2(torch.relu(scale))
         return self.sigmoid(scale) * x
+
 
 class SpatialAttention(nn.Module):
     """
     Spatial Attention module for emphasizing relevant spatial regions.
     """
+
     def __init__(self):
         super(SpatialAttention, self).__init__()
         self.conv1 = nn.Conv2d(2, 1, kernel_size=7, padding=3)
@@ -211,7 +245,10 @@ class SpatialAttention(nn.Module):
         scale = torch.cat([avg_pool, max_pool], dim=1)
         return self.sigmoid(self.conv1(scale)) * x
 
+
 # 4. CNN Model with Attention
+
+
 class DisplacementPredictor(nn.Module):
     """
     A CNN model with channel and spatial attention for displacement prediction.
@@ -220,6 +257,7 @@ class DisplacementPredictor(nn.Module):
         input_channels (int): Number of input channels.
         num_nodes (int): Number of nodes in the displacement data.
     """
+
     def __init__(self, input_channels, num_nodes):
         super(DisplacementPredictor, self).__init__()
 
@@ -250,9 +288,11 @@ class DisplacementPredictor(nn.Module):
 
         # Fully connected layers for displacement prediction
         self.fc = nn.Sequential(
-            nn.Linear(128 * 5 * 5, 512),  # Adjust based on flattened dimension after conv layers
+            # Adjust based on flattened dimension after conv layers
+            nn.Linear(128 * 5 * 5, 512),
             nn.ReLU(),
-            nn.Linear(512, num_nodes * 3)  # Output size = num_nodes * 3 (displacement components)
+            # Output size = num_nodes * 3 (displacement components)
+            nn.Linear(512, num_nodes * 3),
         )
 
     def forward(self, x):
@@ -284,8 +324,16 @@ class DisplacementPredictor(nn.Module):
         # Reshape output to (batch_size, num_nodes, 3)
         return x.view(x.size(0), -1, 3)
 
+
 # 5. Data Loader Creation Function
-def create_data_loaders(base_folder, load_files=("checkerboard", "displacements"), skip_missing=True, batch_size=15):
+
+
+def create_data_loaders(
+    base_folder,
+    load_files=("checkerboard", "displacements"),
+    skip_missing=True,
+    batch_size=15,
+):
     """
     Create PyTorch DataLoaders for training, validation, and testing.
 
@@ -329,7 +377,10 @@ def create_data_loaders(base_folder, load_files=("checkerboard", "displacements"
 
     return train_loader, val_loader, test_loader, loaded_data
 
+
 # 6. Model Creation Function
+
+
 def create_model(input_channels, num_nodes):
     """
     Create a DisplacementPredictor model.
@@ -344,8 +395,20 @@ def create_model(input_channels, num_nodes):
     model = DisplacementPredictor(input_channels, num_nodes)
     return model
 
+
 # 7. Training Function
-def train_model(model, train_loader, val_loader, criterion, optimizer, scheduler, epochs=10, patience=5):
+
+
+def train_model(
+    model,
+    train_loader,
+    val_loader,
+    criterion,
+    optimizer,
+    scheduler,
+    epochs=10,
+    patience=5,
+):
     """
     Train the model with early stopping.
 
@@ -362,7 +425,7 @@ def train_model(model, train_loader, val_loader, criterion, optimizer, scheduler
     Returns:
         tuple: Lists of training and validation losses per epoch.
     """
-    best_val_loss = float('inf')
+    best_val_loss = float("inf")
     early_stop_counter = 0
 
     train_losses = []
@@ -371,11 +434,11 @@ def train_model(model, train_loader, val_loader, criterion, optimizer, scheduler
     # Initialize plot (temporarily disable to ensure print statements work)
     plt.ion()
     fig, ax = plt.subplots()
-    ax.set_xlabel('Epoch')
-    ax.set_ylabel('Loss')
-    ax.set_title('Training and Validation Loss')
-    line1, = ax.plot([], [], label='Training Loss', color='blue')
-    line2, = ax.plot([], [], label='Validation Loss', color='orange')
+    ax.set_xlabel("Epoch")
+    ax.set_ylabel("Loss")
+    ax.set_title("Training and Validation Loss")
+    (line1,) = ax.plot([], [], label="Training Loss", color="blue")
+    (line2,) = ax.plot([], [], label="Validation Loss", color="orange")
     ax.legend()
 
     for epoch in range(epochs):
@@ -435,7 +498,10 @@ def train_model(model, train_loader, val_loader, criterion, optimizer, scheduler
     plt.show()
     return train_losses, val_losses
 
+
 # 8. Evaluation Function
+
+
 def smape(y_true, y_pred):
     """
     Calculate Symmetric Mean Absolute Percentage Error (sMAPE).
@@ -451,6 +517,7 @@ def smape(y_true, y_pred):
     denominator = (torch.abs(y_true) + torch.abs(y_pred)) / 2
     smape_value = torch.mean(numerator / denominator)
     return smape_value
+
 
 def evaluate_model(model, test_loader, criterion):
     """
@@ -470,18 +537,18 @@ def evaluate_model(model, test_loader, criterion):
 
     batch_count = 0
 
-
     with torch.no_grad():
         for checkerboard, displacement in test_loader:
             # Forward pass to get predictions
             predicted_displacements = model(checkerboard)
 
             # Calculate batch MSE
-            batch_mse = criterion(predicted_displacements, displacement).item()  # Compute MSE loss for the batch
+            # Compute MSE loss for the batch
+            batch_mse = criterion(predicted_displacements, displacement).item()
             total_mse += batch_mse
 
             # Calculate batch sMAPE
-            batch_smape = smape(displacement, predicted_displacements).item() # sMAPE
+            batch_smape = smape(displacement, predicted_displacements).item()  # sMAPE
             total_smape += batch_smape
 
             batch_count += 1
@@ -489,11 +556,14 @@ def evaluate_model(model, test_loader, criterion):
             # Display results for the first batch
             if batch_count == 1:
                 print("\nCheckerboard Input:")
-                print(checkerboard[0][0].numpy())  # Show first checkerboard in the batch
+                # Show first checkerboard in the batch
+                print(checkerboard[0][0].numpy())
                 print("\nPredicted Displacement (First 5 Nodes):")
-                print(predicted_displacements[0][:5].numpy())  # Predicted displacement for first 5 nodes
+                # Predicted displacement for first 5 nodes
+                print(predicted_displacements[0][:5].numpy())
                 print("\nGround Truth Displacement (First 5 Nodes):")
-                print(displacement[0][:5].numpy())  # Ground truth displacement for first 5 nodes
+                # Ground truth displacement for first 5 nodes
+                print(displacement[0][:5].numpy())
 
     # Calculate and print overall MSE
     overall_mse = total_mse / batch_count
@@ -506,7 +576,10 @@ def evaluate_model(model, test_loader, criterion):
     )
     return overall_mse
 
+
 # 9. Main Function
+
+
 def main():
     """
     Main function to load data, train the model, and evaluate it.
@@ -518,15 +591,13 @@ def main():
     4. Evaluate the model on the test set.
     5. Save the trained model.
     """
-    ### Change the path to your local data directory
+    # Change the path to your local data directory
     data_path1 = r"C:\Users\Lenovo\Desktop\CSE 583 Software Development for Data Scientists\Project\Dataset1_Random_Board\Dataset1_Random_Board"
-
 
     # Create DataLoaders
     print("Loading data...")
     train_loader, val_loader, test_loader, _ = create_data_loaders(
-        base_folder=data_path1,
-        load_files=("checkerboard", "displacements")
+        base_folder=data_path1, load_files=("checkerboard", "displacements")
     )
 
     # Model, Loss, and Optimizer
@@ -537,7 +608,9 @@ def main():
 
     criterion = nn.MSELoss()  # Loss function
     optimizer = optim.Adam(model.parameters(), lr=0.001, weight_decay=1e-5)  # Optimizer
-    scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=2, gamma=0.5)  # Reduce LR every 2 epochs
+    scheduler = torch.optim.lr_scheduler.StepLR(
+        optimizer, step_size=2, gamma=0.5
+    )  # Reduce LR every 2 epochs
 
     # Training
     epochs = 10
@@ -551,7 +624,7 @@ def main():
         optimizer=optimizer,
         scheduler=scheduler,
         epochs=epochs,
-        patience=patience
+        patience=patience,
     )
     print(
         f"Training completed. The last training loss is: {train_losses[-1]:.10f}, "
@@ -559,12 +632,9 @@ def main():
     )
     # Testing and Evaluation
     print("Evaluating model on test set...")
-    evaluate_model(
-        model=model,
-        test_loader=test_loader,
-        criterion=criterion
-    )
+    evaluate_model(model=model, test_loader=test_loader, criterion=criterion)
     print("Evaluation completed.")
+
 
 if __name__ == "__main__":
     main()
@@ -592,8 +662,7 @@ def train_save_gui(data_path):
     # Create DataLoaders
     print("Loading data...")
     train_loader, val_loader, _, _ = create_data_loaders(
-        base_folder=data_path,
-        load_files=("checkerboard", "displacements")
+        base_folder=data_path, load_files=("checkerboard", "displacements")
     )
 
     # Model, Loss, and Optimizer
@@ -604,7 +673,9 @@ def train_save_gui(data_path):
 
     criterion = nn.MSELoss()  # Loss function
     optimizer = optim.Adam(model.parameters(), lr=0.001, weight_decay=1e-5)  # Optimizer
-    scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=2, gamma=0.5)  # Reduce LR every 2 epochs
+    scheduler = torch.optim.lr_scheduler.StepLR(
+        optimizer, step_size=2, gamma=0.5
+    )  # Reduce LR every 2 epochs
 
     # Training
     epochs = 10
@@ -618,13 +689,13 @@ def train_save_gui(data_path):
         optimizer=optimizer,
         scheduler=scheduler,
         epochs=epochs,
-        patience=patience
+        patience=patience,
     )
     print(
         f"Training completed. The last training loss is: {train_losses[-1]:.10f}, "
         f"and the last validation loss is: {val_losses[-1]:.10f}."
     )
-    #create the saved_model folder and save the trained model
+    # create the saved_model folder and save the trained model
     save_dir = Path(data_path) / "saved_model"
     save_dir.mkdir(parents=True, exist_ok=True)  # Create the path if not exist
     save_path = save_dir / "trained_displacement_predictor_full_model.pth"  # Model name
@@ -633,8 +704,10 @@ def train_save_gui(data_path):
     print(f"Trained model has been saved to {save_path}.")
 
 
-### Evaluation_GUI part
-def create_test_loader(test_data_path, load_files=("checkerboard", "displacements"), batch_size=1):
+# Evaluation_GUI part
+def create_test_loader(
+    test_data_path, load_files=("checkerboard", "displacements"), batch_size=1
+):
     """
     Create a DataLoader using the entire dataset from test_data_path.
 
@@ -697,15 +770,14 @@ def evaluate_model_gui(model, test_loader, criterion, pred_save_dir):
             npy_path = os.path.join(batch_dir, "pred_displacements.npy")
             np.save(npy_path, predicted_displacements.cpu().numpy())
 
-
             # Save as CSV
             flat_predictions = predicted_displacements.cpu().numpy().reshape(-1, 3)
             csv_path = os.path.join(batch_dir, "pred_displacements.csv")
             np.savetxt(csv_path, flat_predictions, delimiter=",")
 
-
             # Calculate batch MSE
-            batch_mse = criterion(predicted_displacements, displacement).item()  # Compute MSE loss for the batch
+            # Compute MSE loss for the batch
+            batch_mse = criterion(predicted_displacements, displacement).item()
             total_mse += batch_mse
 
             # Calculate batch sMAPE
@@ -717,18 +789,23 @@ def evaluate_model_gui(model, test_loader, criterion, pred_save_dir):
             # Display results for the first batch
             if batch_count == 1:
                 print("\nCheckerboard Input:")
-                print(checkerboard[0][0].numpy())  # Show first checkerboard in the batch
+                # Show first checkerboard in the batch
+                print(checkerboard[0][0].numpy())
                 print("\nPredicted Displacement (First 5 Nodes):")
-                print(predicted_displacements[0][:5].numpy())  # Predicted displacement for first 5 nodes
+                # Predicted displacement for first 5 nodes
+                print(predicted_displacements[0][:5].numpy())
                 print("\nGround Truth Displacement (First 5 Nodes):")
-                print(displacement[0][:5].numpy())  # Ground truth displacement for first 5 nodes
+                # Ground truth displacement for first 5 nodes
+                print(displacement[0][:5].numpy())
 
     # Calculate and print overall MSE
     overall_mse = total_mse / batch_count
     overall_smape = total_smape / batch_count
 
     print(f"Overall Mean Squared Error (MSE) on Test Set: {overall_mse:.10f}")
-    print(f"Overall Symmetric Mean Absolute Percentage Error (sMAPE) on Test Set: {overall_smape * 100:.10f}%")
+    print(
+        f"Overall Symmetric Mean Absolute Percentage Error (sMAPE) on Test Set: {overall_smape * 100:.10f}%"
+    )
     return overall_mse
 
 
@@ -770,6 +847,6 @@ def load_and_evaluate_model_gui(model_path, test_data_path, pred_save_dir):
         model=model,
         test_loader=test_loader,
         criterion=criterion,
-        pred_save_dir=pred_save_dir
+        pred_save_dir=pred_save_dir,
     )
     print("Evaluation completed, Predicted Displacements saved.")

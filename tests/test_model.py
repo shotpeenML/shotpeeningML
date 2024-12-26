@@ -2,6 +2,8 @@
 Tests for the data visualization module in the peen-ml project.
 """
 
+from model import (load_all_npy_files, CheckerboardDataset,
+                   ChannelAttention)  # pylint: disable=wrong-import-position
 import os
 import sys
 import numpy as np
@@ -9,12 +11,13 @@ import torch
 import pytest
 
 # Add the src directory to the Python module search path
-src_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../src/peen-ml'))
+src_path = os.path.abspath(os.path.join(
+    os.path.dirname(__file__), '../src/peen-ml'))
 sys.path.append(src_path)
 
-from model import (load_all_npy_files, CheckerboardDataset, ChannelAttention) # pylint: disable=wrong-import-position
 
 # Smoke Test
+
 def test_load_all_npy_files_smoke():
     """Smoke test to check if the function runs without errors."""
     base_folder = "./tests/test_simulations"
@@ -25,6 +28,8 @@ def test_load_all_npy_files_smoke():
     assert result["checkerboard"].shape[1:] == (10, 10)
 
 # One-Shot Tests
+
+
 def test_checkerboard_dataset_one_shot():
     """Check basic functionality of CheckerboardDataset."""
     checkerboards = np.random.rand(10, 10, 10)
@@ -35,6 +40,7 @@ def test_checkerboard_dataset_one_shot():
     assert checkerboard.shape == (1, 10, 10)  # Single channel
     assert displacement.shape == (5, 3)
 
+
 def test_channel_attention_one_shot():
     """Check if ChannelAttention layer can forward a tensor."""
     layer = ChannelAttention(channels=32)
@@ -43,11 +49,15 @@ def test_channel_attention_one_shot():
     assert output_tensor.shape == input_tensor.shape  # Should not change shape
 
 # Edge Tests
+
+
 def test_load_all_npy_files_edge_missing_file():
     """Test load_all_npy_files with a missing file."""
     base_folder = "./tests/test_simulations_edge"
     with pytest.raises(FileNotFoundError):
-        load_all_npy_files(base_folder, ("checkerboard", "displacements"), skip_missing=False)
+        load_all_npy_files(base_folder, ("checkerboard",
+                           "displacements"), skip_missing=False)
+
 
 if __name__ == "__main__":
     pytest.main()
