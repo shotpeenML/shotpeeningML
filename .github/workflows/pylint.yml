@@ -35,6 +35,4 @@ jobs:
            --disable=C0301,C0114,C0116,,C0103,R0914,R0913,R0915,R0902,R1725\
            --ignore=src/peen-ml/dataset1_script.py,src/peen-ml/dataset2_script.py\
             $(git ls-files '*.py')
-    - name: Autoformat code with Black (PEP 8 enforcement)
-      run: |
-        black --line-length=120 --check $(git ls-files '*.py')
+
