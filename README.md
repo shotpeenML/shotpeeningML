@@ -1,5 +1,5 @@
 # peen-ml
-
+[![codecov](https://codecov.io/gh/shotpeenML/shotpeeningML/graph/badge.svg?token=27R3FCS9C2)](https://codecov.io/gh/shotpeenML/shotpeeningML)
 **Machine learning solution to predict deformation from shot peening as an alternative to dynamic simulation.** This repository provides tools and workflows to input shot peening parameters and geometry, train machine learning (ML) models to predict resulting deformations, visualize outcomes, and interact with the models through a user-friendly GUI. It aims to streamline the process of exploring and optimizing shot peening recipes, reducing reliance on time-consuming finite element analysis (FEA) simulations.
 
 ## Table of Contents
